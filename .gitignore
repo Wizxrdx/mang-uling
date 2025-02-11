@@ -32,3 +32,5 @@ debug.log
 # Dependencies
 pip-log.txt
 pip-delete-this-directory.txt
+
+build/
