@@ -13,5 +13,5 @@ cp Dockerfile build/.
 cp -r app/* build/app/.
 
 docker build -t manguling build/.
-docker run -t -d -p 8001:5000 --env-file .env --network orangesip --privileged --name manguling manguling
+docker run -t -d -p 8001:5000 --privileged --name manguling manguling
 docker ps -a
