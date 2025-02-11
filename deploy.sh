@@ -5,7 +5,7 @@ docker rm manguling
 rm -r build
 
 mkdir build
-mkdir build/src
+mkdir build/app
 
 cp run.py build/.
 cp requirements.txt build/.
