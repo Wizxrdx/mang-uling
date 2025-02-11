@@ -1,0 +1,160 @@
+/* Base Styles (Applies to All Screen Sizes) */
+body {
+    background-color: #FFD17F;
+    padding: 0;
+    margin: 0;
+    font-family: 'Helvetica', sans-serif;
+}
+
+form {
+    background: #fff;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 30rem;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+form div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+label {
+    font-weight: bold;
+    color: #555;
+}
+
+input[type="text"],
+input[type="password"] {
+    color: #454545;
+    padding: 0.4rem;
+    border: 1px solid #FF5C00;
+    border-radius: 0.4rem;
+    font-size: 1rem;
+}
+
+input[type="text"]:focus,
+input[type="text"]:hover,
+input[type="password"]:focus,
+input[type="password"]:hover {
+    border: 1px solid #D74F01;
+    border-radius: 0.4rem;
+    outline: none;
+    background: #d7500128;
+}
+
+input[type="submit"]:focus,
+input[type="submit"]:hover{
+    outline: none;
+    background-color: #D74F01;
+}
+
+/* Submit Button */
+input[type="submit"] {
+    padding: 0.4rem;
+    background-color: #FF5C00;
+    color: white;
+    font-size: 1rem;
+    border: none;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+}
+
+/* flash message */
+p {
+    color: #454545;
+    text-align: center;
+    margin: 0;
+}
+
+/* ========================= */
+/* Responsive Styles (Grouped) */
+/* ========================= */
+
+
+/* Mobile Devices (Up to 480px) */
+@media (max-width: 480px) {
+    body {
+        margin-top: 10%;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    form {
+        width: 80%;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="submit"] {
+        font-size: 1rem;
+    }
+
+    label {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tablets (481px - 1024px) */
+@media (max-width: 1024px) {
+    body {
+        margin-top: 5%;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    form {
+        width: 80%;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+        font-size: 0.9rem;
+    }
+
+    input[type="submit"] {
+        font-size: 1rem;
+    }
+
+    label {
+        font-size: 0.9rem;
+    }
+}
+
+/* Large Screens (Greater than 1024px) */
+@media (min-width: 1025px) {
+    body {
+        margin-top: 5%;
+    }
+
+    h1 {
+        font-size: 3rem;
+    }
+
+    form {
+        width: 60%;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+        font-size: 1rem;
+    }
+
+    input[type="submit"] {
+        font-size: 1.1rem;
+    }
+    label {
+        font-size: 1.2rem;
+    }
+}

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://d3js.org/d3.v6.js"></script>
+    <script src="{{ url_for('static', filename='dashboard/main.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='/navbar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='/logo.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard/style.css') }}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <nav>
+        <header class="nav-header">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Mang Uling" class="mini-logo">
+            Dashboard
+        </header>
+        
+        <button class="nav-toggle">
+            <span class="material-icons">menu</span>
+        </button>        
+        <ul>
+            <li>
+                <a>
+                    <button class="nav-close">
+                        <span class="material-icons">close</span>
+                    </button>
+                </a>
+            </li>
+            <li><a href="#">
+                <span class="material-icons">
+                    date_range
+                </span>
+            </a></li>
+            <li><a href="#">
+                <span class="material-icons">
+                notifications
+                </span>
+            </a></li>
+            <li><a href="#">
+                <span class="material-icons">
+                    account_circle
+                    </span>
+            </a></li>
+            <li><a href="/logout">Logout</a></li>
+        </ul>
+    </nav>
+    <div id="main">
+        <section class="indicators">
+            <div class="indicator-container" id="status">
+                <!-- status div -->
+            </div>
+            <div class="indicator-container" id="count">
+                <!-- count div -->
+            </div>
+            <div class="indicator-container" id="quota">
+                <!-- quota div -->
+            </div>
+        </section>
+        <section class="vizualizations">
+            <div class='visual-container'>
+                <div class='table-header'>
+                    <h2>Daily Production</h2>
+                </div>
+                <div class='table-body'>
+                    <table>
+                        <tr>
+                            <th>Days</th>
+                            <th>Bags</th>
+                        </tr>
+                        <tr>
+                            <td>Monday</td>
+                            <td>500 bags</td>
+                        </tr>
+                        <tr>
+                            <td>Tuesday</td>
+                            <td>500 bags</td>
+                        </tr>
+                        <tr>
+                            <td>Wednesday</td>
+                            <td>500 bags</td>
+                        </tr>
+                        <tr>
+                            <td>Thursday</td>
+                            <td>500 bags</td>
+                        </tr>
+                        <tr>
+                            <td>Friday</td>
+                            <td>500 bags</td>
+                        </tr>
+                        <tr>
+                            <td>Saturday</td>
+                            <td>500 bags</td>
+                        </tr>
+                        <tr>
+                            <td>Sunday</td>
+                            <td>500 bags</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="visual-container">
+                <div class="chart-header">
+                    <h2>Weekly Production Report</h2>
+                </div>
+                <div id="my_dataviz" class="chart-body"></div>
+            </div>            
+        </section>
+    </div>
+</body>
+<script src="{{ url_for('static', filename='dashboard/chart.js') }}"></script>
+</html>
