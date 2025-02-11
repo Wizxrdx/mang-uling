@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='/navbar.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='/logo.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='dashboard/style.css') }}">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
 <body>
     <nav>
@@ -21,28 +21,24 @@
         </header>
         
         <button class="nav-toggle">
-            <span class="material-icons">menu</span>
-        </button>        
+            <span class="material-symbols-outlined">menu</span>
+        </button>
         <ul>
             <li>
-                <a>
-                    <button class="nav-close">
-                        <span class="material-icons">close</span>
-                    </button>
-                </a>
+                <br>
             </li>
             <li><a href="#">
-                <span class="material-icons">
+                <span class="material-symbols-outlined">
                     date_range
                 </span>
             </a></li>
             <li><a href="#">
-                <span class="material-icons">
+                <span class="material-symbols-outlined">
                 notifications
                 </span>
             </a></li>
             <li><a href="#">
-                <span class="material-icons">
+                <span class="material-symbols-outlined">
                     account_circle
                     </span>
             </a></li>
@@ -54,11 +50,13 @@
             <div class="indicator-container" id="status">
                 <!-- status div -->
             </div>
-            <div class="indicator-container" id="count">
-                <!-- count div -->
-            </div>
-            <div class="indicator-container" id="quota">
-                <!-- quota div -->
+            <div style="flex: 7 7 auto; gap: 0.2rem; display: grid;">
+                <div class="indicator-container" id="1kg">
+                    <!-- count div -->
+                </div>
+                <div class="indicator-container" id="10kg">
+                    <!-- quota div -->
+                </div>
             </div>
         </section>
         <section class="vizualizations">
@@ -103,12 +101,6 @@
                     </table>
                 </div>
             </div>
-            <div class="visual-container">
-                <div class="chart-header">
-                    <h2>Weekly Production Report</h2>
-                </div>
-                <div id="my_dataviz" class="chart-body"></div>
-            </div>            
         </section>
     </div>
 </body>

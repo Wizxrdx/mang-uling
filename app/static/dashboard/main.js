@@ -19,12 +19,12 @@ function replaceWithContent(selector, url) {
 
 $(document).ready(function() {
     replaceWithContent("#status", "/status");
-    replaceWithContent("#count", "/count");
-    replaceWithContent("#quota", "/quota");
+    replaceWithContent("#1kg", "/quota/1kg");
+    replaceWithContent("#10kg", "/quota/10kg");
 
     // var refreshId = setInterval(function() {
     //     replaceWithContent("#status", "/status");
-    //     replaceWithContent("#count", "/count");
-    //     replaceWithContent("#quota", "/quota");
+    //     replaceWithContent("#1kg", "/quota/1kg");
+    //     replaceWithContent("#10kg", "/quota/10kg");
     // }, 3000);
 });

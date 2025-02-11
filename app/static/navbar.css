@@ -8,6 +8,7 @@ button {
 }
 
 nav {
+    z-index: 1000;
     overflow: hidden;
     position: sticky;
     top: 0;
@@ -19,7 +20,7 @@ nav {
     justify-content: space-between;
     align-items: center;
     font-size: larger;
-    padding: 0.5rem 1rem;
+    padding-left: 1rem;
 }
 
 .nav-header {
@@ -51,9 +52,11 @@ nav ul li a:hover {
     nav {
         flex-direction: row;
         align-items: center;
+        padding: 0 0.4rem;
     }
 
     nav ul {
+        z-index: -1000;
         position: fixed;
         display: flex;
         flex-direction: column;
@@ -68,9 +71,8 @@ nav ul li a:hover {
         transition: left 0.3s ease-in-out;
     }
 
-    .nav-close,
     .nav-toggle {
-        display: block;
+        display: flex;
         cursor: pointer;
         font-size: 1.5rem;
         background: none;
@@ -97,9 +99,11 @@ nav ul li a:hover {
     nav {
         flex-direction: row;
         align-items: center;
+        padding: 0 0.8rem;
     }
 
     nav ul {
+        z-index: -1000;
         position: fixed;
         display: flex;
         flex-direction: column;
@@ -114,9 +118,8 @@ nav ul li a:hover {
         transition: left 0.3s ease-in-out;
     }
 
-    .nav-close,
     .nav-toggle {
-        display: block;
+        display: flex;
         cursor: pointer;
         font-size: 1.5rem;
         background: none;
@@ -145,16 +148,15 @@ nav ul li a:hover {
         justify-content: space-between;
     }
     
-    .nav-close,
     .nav-toggle {
         display: none;
     }
 
-
     nav ul {
         display: flex;
         flex-direction: row;
-        margin: 10px;
+        align-items: center;
+        margin: 0.4rem;
         padding: 0;
     }
 
@@ -175,7 +177,6 @@ nav ul li a:hover {
         justify-content: space-between;
     }
 
-    .nav-close,
     .nav-toggle {
         display: none;
     }
@@ -188,6 +189,7 @@ nav ul li a:hover {
     }
 
     nav ul li {
+        align-content: center;
         margin: 0 15px;
     }
 
