@@ -23,6 +23,10 @@ nav {
     padding-left: 1rem;
 }
 
+#burger {
+    font-size: larger;
+}
+
 .nav-header {
     display: flex;
     align-items: center;
@@ -53,6 +57,11 @@ nav ul li a:hover {
         flex-direction: row;
         align-items: center;
         padding: 0 0.4rem;
+        font-size: x-large;
+    }
+
+    #burger {
+        font-size: x-large;
     }
 
     nav ul {
@@ -100,6 +109,11 @@ nav ul li a:hover {
         flex-direction: row;
         align-items: center;
         padding: 0 0.8rem;
+        font-size: xx-large;
+    }
+
+    #burger {
+        font-size: xx-large;
     }
 
     nav ul {
