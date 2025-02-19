@@ -4,6 +4,8 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Length
 
+from .models import BagType, DailyProduction, Employee
+
 # Blueprint setup
 main = Blueprint('main', __name__)
 
