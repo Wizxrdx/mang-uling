@@ -39,6 +39,17 @@ div {
     padding: 0;
 }
 
+.export-button {
+    margin: 0.5rem;
+    padding: 0.5rem;
+    font-size: 1rem;
+    background-color: #FF5C00;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+}
+
 #icon {
     font-size: 4rem;
 }

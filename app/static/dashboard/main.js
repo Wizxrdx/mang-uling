@@ -4,6 +4,25 @@ function replaceWithContent(selector, url) {
     });
 }
 
+function updateTable() {
+    $.getJSON("/log", function (response) {
+        let tableBody = $(".table-body table");
+        tableBody.find("tr:gt(0)").remove(); // Remove old rows, keep header
+
+        response.data.forEach(row => {
+            tableBody.append(`
+                <tr>
+                    <td>${row.date}</td>
+                    <td>${row.bags_1kg} bags</td>
+                    <td>${row.bags_10kg} bags</td>
+                </tr>
+            `);
+        });
+
+        $("#week-info").text(`Week: ${response.start_date} - ${response.end_date}`);
+    });
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     const navToggle = document.querySelector(".nav-toggle");
     const navClose = document.querySelector(".nav-close");

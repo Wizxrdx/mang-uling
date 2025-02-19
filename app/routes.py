@@ -164,3 +164,21 @@ def quota(size):
                            max=DATA[size]["quota"],
                            progress=f"{prog:.2f}%",
                            eta="ETA: 2 hours")
+
+@main.route('/log', methods=['GET'])
+def log():
+    if 'username' not in session:
+        flash('You need to log in to access the dashboard.', 'warning')
+        return redirect(url_for('main.login'))
+    
+    today = datetime.today()
+    start_of_week = today - timedelta(days=today.weekday())  # Monday of current week
+    end_of_week = start_of_week + timedelta(days=6)  # Sunday of current week
+
+    week_logs = [entry for entry in LOG if start_of_week <= entry["date"] <= end_of_week]
+
+    return jsonify({
+        "data": [{"date": entry["date"].strftime("%b. %d, %Y"), "bags_1kg": entry["bags_1kg"], "bags_10kg": entry["bags_10kg"]} for entry in week_logs],
+        "start_date": start_of_week.strftime("%b. %d, %Y"),
+        "end_date": end_of_week.strftime("%b. %d, %Y")
+    })
