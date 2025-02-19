@@ -30,12 +30,13 @@ document.addEventListener("DOMContentLoaded", function () {
     navToggle.addEventListener("click", function () {
         navMenu.classList.toggle("show");
     });
-    });
+});
 
 $(document).ready(function() {
     replaceWithContent("#status", "/status");
     replaceWithContent("#1kg", "/quota/1kg");
     replaceWithContent("#10kg", "/quota/10kg");
+    updateTable();
 
     // var refreshId = setInterval(function() {
     //     replaceWithContent("#status", "/status");
