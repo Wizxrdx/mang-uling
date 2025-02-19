@@ -1,25 +1,11 @@
 from flask import render_template, Blueprint, redirect, url_for, session, flash, request, jsonify
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Length
 
 # Blueprint setup
 main = Blueprint('main', __name__)
-
-# Mock user data (replace with a database in a real app)
-USERS = [
-    {
-        'username': 'admin',
-        'password': '1234',
-        'name': 'Admin'
-    },
-    {
-        'username': 'user',
-        'password': '1234',
-        'name': 'User'
-    }
-]
 
 IS_BUSY = False
 DATA = {
