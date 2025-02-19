@@ -86,11 +86,16 @@ def status():
     if 'username' not in session:
         flash('You need to log in to access the dashboard.', 'warning')
         return redirect(url_for('main.login'))
-        
-    if IS_BUSY:
-        return render_template('status.html', id="status-running", message="RUNNING")
-    else:    
-        return render_template('status.html', id="status-idle", message="IDLE")
+
+    print(IS_BUSY)
+    if IS_BUSY != False:
+        return render_template('status.html',
+                               color="#00FF00",
+                               message="RUNNING")
+    else:
+        return render_template('status.html',
+                               color="#FFFF00",
+                               message="IDLE")
 
 @main.route('/status/<size>', methods=['PUT'])
 def put_status(size):
@@ -100,8 +105,9 @@ def put_status(size):
         return redirect(url_for('main.login'))
     
     if request.method == 'PUT':
-        if size == "":
+        if size == "stop":
             IS_BUSY = False
+            return jsonify({"status": "success", "message": "Status updated successfully.", "value": IS_BUSY})
         
         if size in DATA:
             IS_BUSY = size
@@ -137,9 +143,22 @@ def quota(size):
     
     msg = f"{str(DATA[size]["count"])}/{str(DATA[size]["quota"])} bags"
     prog = (DATA[size]["count"] / DATA[size]["quota"]) * 100
+    run_button = f"""<button class="control-button" id="run-{size}" tooltip="Run the process">
+<span class="material-symbols-outlined" id="icon">manufacturing</span>
+</button>"""
+    stop_button = f"""<button class="control-button" id="stop-{size}" tooltip="Stop the process">
+<span class="material-symbols-outlined" id="icon">&#xe5c9;</span>
+</button>"""
+    edit_button = f"""<button class="control-button" id="edit_{size}" tooltip="Decrement">
+<span class="material-symbols-outlined" id="icon">edit_square</span>
+</button>"""
+    button = stop_button if IS_BUSY == size else run_button
     return render_template('control.html',
                            title=f"{str(DATA[size]["size"])} kg bags",
                            subtitle="Packing Progress Report",
+                           id=size,
+                           start_button=button,
+                           edit_button=edit_button,
                            message=msg,
                            value=DATA[size]["count"],
                            max=DATA[size]["quota"],

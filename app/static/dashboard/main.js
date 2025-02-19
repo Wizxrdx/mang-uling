@@ -1,3 +1,9 @@
+function replaceWithContent(selector, url) {
+    $.get(url, function(data) {
+        $(selector).replaceWith(data);
+    });
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     const navToggle = document.querySelector(".nav-toggle");
     const navClose = document.querySelector(".nav-close");
@@ -27,4 +33,64 @@ $(document).ready(function() {
     //     replaceWithContent("#1kg", "/quota/1kg");
     //     replaceWithContent("#10kg", "/quota/10kg");
     // }, 3000);
+});
+
+$(document).on("click", "#run-1kg", function () {
+    $.ajax({
+        url: "/status/1kg",
+        type: "PUT",
+        success: function (data) {
+            replaceWithContent("#status", "/status");
+            replaceWithContent("#1kg", "/quota/1kg");
+            replaceWithContent("#10kg", "/quota/10kg");
+        },
+        error: function (xhr, status, error) {
+            console.error("Error updating status:", error);
+        }
+    });
+});
+
+$(document).on("click", "#run-10kg", function () {
+    $.ajax({
+        url: "/status/10kg",
+        type: "PUT",
+        success: function (data) {
+            replaceWithContent("#status", "/status");
+            replaceWithContent("#1kg", "/quota/1kg");
+            replaceWithContent("#10kg", "/quota/10kg");
+        },
+        error: function (xhr, status, error) {
+            console.error("Error updating status:", error);
+        }
+    });
+});
+
+$(document).on("click", "#stop-1kg", function () {
+    $.ajax({
+        url: "/status/stop",
+        type: "PUT",
+        success: function (data) {
+            replaceWithContent("#status", "/status");
+            replaceWithContent("#1kg", "/quota/1kg");
+            replaceWithContent("#10kg", "/quota/10kg");
+        },
+        error: function (xhr, status, error) {
+            console.error("Error updating status:", error);
+        }
+    });
+});
+
+$(document).on("click", "#stop-10kg", function () {
+    $.ajax({
+        url: "/status/stop",
+        type: "PUT",
+        success: function (data) {
+            replaceWithContent("#status", "/status");
+            replaceWithContent("#1kg", "/quota/1kg");
+            replaceWithContent("#10kg", "/quota/10kg");
+        },
+        error: function (xhr, status, error) {
+            console.error("Error updating status:", error);
+        }
+    });
 });

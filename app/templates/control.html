@@ -1,4 +1,4 @@
-<div class="indicator-container">
+<div class="indicator-container" id="{{ id }}">
     <div class="indicator-header">
         <h2>{{ title }}</h2>
         <h1>{{ subtitle }}</h1>
@@ -12,17 +12,7 @@
         <p>{{ eta }}</p>
     </div>
     <div class="indicator-control">
-        <button class="control-button" id="decrement" tooltip="Decrement">
-            <span class="material-symbols-outlined" id="icon">remove</span>
-        </button>
-        <button class="control-button" id="run" tooltip="Run the process">
-            <span class="material-symbols-outlined" id="icon">manufacturing</span>
-        </button>
-        <button class="control-button" id="stop">
-            <span class="material-symbols-outlined" id="icon">&#xe5c9;</span>
-        </button>
-        <button class="control-button" id="increment" tooltip="Decrement">
-            <span class="material-symbols-outlined" id="icon">add</span>
-        </button>
+        {{ edit_button|safe }}
+        {{ start_button|safe }}
     </div>
 </div>
