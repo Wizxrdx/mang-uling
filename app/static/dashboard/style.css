@@ -111,15 +111,6 @@ div {
     border: none;
 }
 
-/* machine status style */
-#status-running {
-    background-color: #00FF00;
-}
-
-#status-idle {
-    background-color: #FFFF00;
-}
-
 /* visuals style */
 .visual-container {
     box-shadow: black 2px 2px 10px;
