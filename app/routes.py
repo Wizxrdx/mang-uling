@@ -36,11 +36,12 @@ def login():
         username = form.username.data
         password = form.password.data
 
-        user = next((user for user in USERS if user['username'] == username), None)
-        
-        if user and user['password'] == password:
-            session['username'] = username
-            session['name'] = user['name']
+        # Fetch employee from the database
+        employee = Employee.query.filter_by(username=username).first()
+
+        if employee and employee.check_password(password):
+            session['username'] = employee.username
+            session['name'] = employee.name
             return redirect(url_for('main.index'))
         else:
             flash('Invalid username or password', 'danger')
