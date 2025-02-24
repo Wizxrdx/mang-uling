@@ -11,6 +11,7 @@ cp run.py build/.
 cp requirements.txt build/.
 cp Dockerfile build/.
 cp -r app/* build/app/.
+cp -r forecasting/* build/forecasting/.
 
 docker build -t manguling build/.
 docker run -t -d -p 8001:5000 --privileged --name manguling manguling
