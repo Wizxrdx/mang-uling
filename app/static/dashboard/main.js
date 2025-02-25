@@ -8,13 +8,12 @@ function updateTable() {
     $.getJSON("/log", function (response) {
         let tableBody = $(".table-body table");
         tableBody.find("tr:gt(0)").remove(); // Remove old rows, keep header
-
-        response.data.forEach(row => {
+        Object.entries(response.data).forEach(([key, value]) => {
             tableBody.append(`
                 <tr>
-                    <td>${row.date}</td>
-                    <td>${row.bags_1kg} bags</td>
-                    <td>${row.bags_10kg} bags</td>
+                    <td>${key}</td>
+                    <td>${value.bag_1kg} bags</td>
+                    <td>${value.bag_10kg} bags</td>
                 </tr>
             `);
         });
@@ -38,11 +37,12 @@ $(document).ready(function() {
     replaceWithContent("#10kg", "/quota/10kg");
     updateTable();
 
-    // var refreshId = setInterval(function() {
-    //     replaceWithContent("#status", "/status");
-    //     replaceWithContent("#1kg", "/quota/1kg");
-    //     replaceWithContent("#10kg", "/quota/10kg");
-    // }, 3000);
+    var refreshId = setInterval(function() {
+        replaceWithContent("#status", "/status");
+        replaceWithContent("#1kg", "/quota/1kg");
+        replaceWithContent("#10kg", "/quota/10kg");
+        updateTable();
+    }, 3000);
 });
 
 $(document).on("click", "#run-1kg", function () {
