@@ -24,6 +24,7 @@ def create_app():
     migrate.init_app(app, db)
 
     # Initialize the database
+    from .data import initialize_data
     from .populate_data import populate_bag_types, populate_credentials, populate_with_real_data, populate_with_fake_data
     with app.app_context():
         if not database_exists(app):
@@ -38,6 +39,7 @@ def create_app():
         else:
             print("Database already exists. Skipping upgrade.")
             
+        initialize_data()
 
     # Register blueprints (optional, for modular apps)
     from .routes import main

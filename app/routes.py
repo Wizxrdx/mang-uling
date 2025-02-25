@@ -5,25 +5,10 @@ from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Length
 
 from .models import BagType, DailyProduction, Employee
+from .data import IS_BUSY, DATA, WEEKLY_LOG, TODAY, lock
 
 # Blueprint setup
 main = Blueprint('main', __name__)
-
-IS_BUSY = False
-DATA = {
-    "1kg": {
-        "size": 1,
-        "count": 10,
-        "quota": 100
-    },
-    "10kg": {
-        "size": 10,
-        "count": 25,
-        "quota": 50
-    },
-}
-
-LOG = []
 
 # Flask-WTF Login Form
 class LoginForm(FlaskForm):
@@ -36,13 +21,13 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         username = form.username.data
-        password = form.password.data
+        password = form.password.data  
 
         # Fetch employee from the database
         employee = Employee.query.filter_by(username=username).first()
 
-        if employee and employee.check_password(password):
-            session['username'] = employee.username
+        if employee and employee.check_password(password):  # Verify password
+            session['username'] = username  # Store user session separately
             session['name'] = employee.name
             return redirect(url_for('main.index'))
         else:
@@ -59,17 +44,17 @@ def logout():
 
 @main.route('/', methods=['GET'])
 def index():
-    if request.method == 'GET':
-        if 'username' not in session:
-            flash('You need to log in to access the dashboard.', 'warning')
-            return redirect(url_for('main.login'))
-        
-        name = session.get('name', "Guest")
-        return render_template(
-            'index.html',
-            user_name=name,
-            current_date=datetime.now().strftime("%Y-%m-%d")
-        )
+    if 'username' not in session:
+        flash('You need to log in to access the dashboard.', 'warning')
+        return redirect(url_for('main.login'))
+    
+    name = session.get('name', "Guest")
+
+    return render_template(
+        'index.html',
+        user_name=name,
+        current_date=datetime.now().strftime("%Y-%m-%d")
+    )
 
 @main.route('/status', methods=['GET'])
 def status():
@@ -160,15 +145,12 @@ def log():
     if 'username' not in session:
         flash('You need to log in to access the dashboard.', 'warning')
         return redirect(url_for('main.login'))
-    
-    today = datetime.today()
-    start_of_week = today - timedelta(days=today.weekday())  # Monday of current week
+
+    start_of_week = TODAY - timedelta(days=TODAY.weekday())  # Monday of current week
     end_of_week = start_of_week + timedelta(days=6)  # Sunday of current week
 
-    week_logs = [entry for entry in LOG if start_of_week <= entry["date"] <= end_of_week]
-
     return jsonify({
-        "data": [{"date": entry["date"].strftime("%b. %d, %Y"), "bags_1kg": entry["bags_1kg"], "bags_10kg": entry["bags_10kg"]} for entry in week_logs],
+        "data": WEEKLY_LOG,
         "start_date": start_of_week.strftime("%b. %d, %Y"),
         "end_date": end_of_week.strftime("%b. %d, %Y")
     })
