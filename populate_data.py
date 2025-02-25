@@ -1,6 +1,6 @@
+import random
 from app.models import Employee, BagType, DailyProduction
 from datetime import datetime, timedelta
-import numpy as np
 
 # Monthly data
 data = {
@@ -10,6 +10,20 @@ data = {
     "2024-11": {"1kg": 240, "10kg": 1010, "days": 30},
     "2024-12": {"1kg": 450, "10kg": 740, "days": 31},
 }
+
+def generate_random_sales(total_kg, days):
+    """Generate random daily sales ensuring the sum matches total_kg."""
+    sales = []
+    remaining_kg = total_kg
+
+    for _ in range(days - 1):
+        daily = max(0, int(random.uniform(0.7, 1.3) * (total_kg / days)))
+        sales.append(daily)
+        remaining_kg -= daily
+
+    # Ensure the last day adjusts to match total_kg
+    sales.append(max(0, remaining_kg))
+    return sales
 
 def populate_data(db):
     # Create bag types  
@@ -32,23 +46,15 @@ def populate_data(db):
             if bag_type == "days":
                 continue
 
-            # Generate random daily sales while keeping the total monthly sales accurate
-            mean_daily = total_kg / days_in_month
-            daily_sales = np.random.normal(loc=mean_daily, scale=mean_daily * 0.3, size=days_in_month)
-            daily_sales = np.round(daily_sales).astype(int)
-
-            # Ensure no negative values
-            daily_sales = np.maximum(daily_sales, 0)
-
-            # Adjust last day to match total sales
-            daily_sales[-1] += total_kg - daily_sales.sum()
+            # Generate random daily sales
+            daily_sales = generate_random_sales(total_kg, days_in_month)
 
             for day in range(days_in_month):
                 date = (start_date + timedelta(days=day)).strftime("%Y-%m-%d")
                 entry = DailyProduction(
                     production_date=date,
                     bag_type_id=bag_types[bag_type],
-                    quantity=int(daily_sales[day])
+                    quantity=daily_sales[day]
                 )
                 db.session.add(entry)
 
@@ -56,8 +62,8 @@ def populate_data(db):
     print("Monthly data added successfully!")
 
     # Add an employee
-    employee = Employee(name="John Doe", username="johndoe")
-    employee.set_password("securepassword")
+    employee = Employee(name="Admin", username="admin")
+    employee.set_password("1234")
 
     db.session.add(employee)
     db.session.commit()
