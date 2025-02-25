@@ -11,7 +11,7 @@ data = {
     "2024-12": {"1kg": 450, "10kg": 740, "days": 31},
 }
 
-def generate_random_sales(total_kg, days):
+def generate_randomized_sales(total_kg, days):
     """Generate random daily sales ensuring the sum matches total_kg."""
     sales = []
     remaining_kg = total_kg
@@ -25,7 +25,7 @@ def generate_random_sales(total_kg, days):
     sales.append(max(0, remaining_kg))
     return sales
 
-def populate_data(db):
+def populate_bag_types(db):
     # Create bag types  
     one_kg_bag = BagType(type="1kg")
     ten_kg_bag = BagType(type="10kg")
@@ -35,6 +35,16 @@ def populate_data(db):
     db.session.commit()
     print("Bag types added successfully!")
 
+def populate_credentials(db):
+    # Add an employee
+    employee = Employee(name="Admin", username="admin")
+    employee.set_password("1234")
+
+    db.session.add(employee)
+    db.session.commit()
+    print("Employee added successfully!")
+
+def populate_with_real_data(db):
     bag_types = {bt.type: bt.id for bt in BagType.query.all()}
 
     for month, details in data.items():
@@ -47,7 +57,7 @@ def populate_data(db):
                 continue
 
             # Generate random daily sales
-            daily_sales = generate_random_sales(total_kg, days_in_month)
+            daily_sales = generate_randomized_sales(total_kg, days_in_month)
 
             for day in range(days_in_month):
                 date = (start_date + timedelta(days=day)).strftime("%Y-%m-%d")
@@ -61,10 +71,24 @@ def populate_data(db):
     db.session.commit()
     print("Monthly data added successfully!")
 
-    # Add an employee
-    employee = Employee(name="Admin", username="admin")
-    employee.set_password("1234")
+def populate_with_fake_data(db, start_date="2025-01-01"):
+    bag_types = {bt.type: bt.id for bt in BagType.query.all()}
+    
+    start_date = datetime.strptime(start_date, "%Y-%m-%d")
+    end_date = datetime.now()
+    days = (end_date - start_date).days
 
-    db.session.add(employee)
+    entries = []
+    for day in range(days + 1):  # Loop from start_date to today
+        current_date = (start_date + timedelta(days=day)).strftime("%Y-%m-%d")
+        for bag_type_id in bag_types.values():
+            entry = DailyProduction(
+                production_date=current_date,
+                bag_type_id=bag_type_id,
+                quantity=random.randint(100, 1000)
+            )
+            entries.append(entry)
+
+    db.session.bulk_save_objects(entries)
     db.session.commit()
-    print("Employee added successfully!")
+    print("Fake data added successfully!")
