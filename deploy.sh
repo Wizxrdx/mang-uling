@@ -6,6 +6,7 @@ rm -r build
 
 mkdir build
 mkdir build/app
+mkdir build/forecasting
 
 cp run.py build/.
 cp requirements.txt build/.
