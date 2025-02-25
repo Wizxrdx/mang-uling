@@ -3,6 +3,7 @@ FROM python:3.12.5
 WORKDIR /home/
 COPY  ./app app/
 COPY  ./forecasting forecasting/
+COPY  ./migrations migrations/
 COPY  requirements.txt run.py populate_data.py ./
 
 RUN pip install --no-cache-dir -r requirements.txt
