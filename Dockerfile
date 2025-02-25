@@ -4,7 +4,7 @@ WORKDIR /home/
 COPY  ./app app/
 COPY  ./forecasting forecasting/
 COPY  ./migrations migrations/
-COPY  requirements.txt run.py populate_data.py ./
+COPY  requirements.txt run.py ./
 
 RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 8001

@@ -12,7 +12,6 @@ mkdir build/migrations
 cp run.py build/.
 cp requirements.txt build/.
 cp Dockerfile build/.
-cp populate_data.py build/.
 cp -r app/* build/app/.
 cp -r forecasting/* build/forecasting/.
 cp -r migrations/* build/migrations/.
