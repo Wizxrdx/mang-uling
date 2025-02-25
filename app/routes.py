@@ -23,6 +23,8 @@ DATA = {
     },
 }
 
+LOG = []
+
 # Flask-WTF Login Form
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=2, max=20)])
@@ -76,7 +78,6 @@ def status():
         flash('You need to log in to access the dashboard.', 'warning')
         return redirect(url_for('main.login'))
 
-    print(IS_BUSY)
     if IS_BUSY != False:
         return render_template('status.html',
                                color="#00FF00",
