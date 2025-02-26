@@ -90,12 +90,7 @@ def put_status(size):
 
 @main.route('/count/<size>', methods=['PUT'])
 def count(size):
-    global COUNT
-    
-    if 'username' not in session:
-        flash('You need to log in to access the dashboard.', 'warning')
-        return redirect(url_for('main.login'))
-        
+    global DATA
     if request.method == 'PUT':
         DATA[size]["count"] += 1
         return jsonify({"status": "success", "message": "Count updated successfully."})
