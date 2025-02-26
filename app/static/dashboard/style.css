@@ -33,9 +33,10 @@ div {
 }
 
 
-.progress {
+.progress-bar {
+    background-color: lightgray;
     width: 80%;
-    height: 2rem;
+    height: 1rem;
     margin: 0;
     padding: 0;
 }

@@ -1,4 +1,4 @@
-from flask import render_template, Blueprint, redirect, url_for, session, flash, request, jsonify
+from flask import render_template, Blueprint, redirect, url_for, session, flash, request, jsonify, abort
 from datetime import datetime, timedelta
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
@@ -58,7 +58,6 @@ def index():
 
 @main.route('/status', methods=['GET'])
 def status():
-    global IS_BUSY
     if 'username' not in session:
         flash('You need to log in to access the dashboard.', 'warning')
         return redirect(url_for('main.login'))
@@ -101,20 +100,14 @@ def count(size):
         DATA[size]["count"] += 1
         return jsonify({"status": "success", "message": "Count updated successfully."})
     
-@main.route('/quota/<size>', methods=['GET', 'POST'])
-def quota(size):
+@main.route('/quota/<size>', methods=['GET'])
+def get_quota(size):
     if 'username' not in session:
         flash('You need to log in to access the dashboard.', 'warning')
         return redirect(url_for('main.login'))
     
     if size not in DATA:
-        return jsonify({"status": "error", "message": "Invalid size."})
-    
-    if request.method == 'POST':
-        DATA[size]["quota"] += 1
-        return jsonify({"status": "success",
-                        "message": "Quota updated successfully.",
-                        "value": DATA[size]})
+        return jsonify({"status": "error", "message": "Invalid size."}), 400
     
     msg = f"{str(DATA[size]["count"])}/{str(DATA[size]["quota"])} bags"
     prog = (DATA[size]["count"] / DATA[size]["quota"]) * 100
@@ -124,7 +117,7 @@ def quota(size):
     stop_button = f"""<button class="control-button" id="stop-{size}" tooltip="Stop the process">
 <span class="material-symbols-outlined" id="icon">&#xe5c9;</span>
 </button>"""
-    edit_button = f"""<button class="control-button" id="edit_{size}" tooltip="Decrement">
+    edit_button = f"""<button class="control-button" id="edit-{size}" tooltip="Decrement">
 <span class="material-symbols-outlined" id="icon">edit_square</span>
 </button>"""
     button = stop_button if IS_BUSY == size else run_button
@@ -139,6 +132,29 @@ def quota(size):
                            max=DATA[size]["quota"],
                            progress=f"{prog:.2f}%",
                            eta="ETA: 2 hours")
+
+@main.route('/quota/<size>/<count>', methods=['POST'])
+def post_quota(size, count):
+    global DATA
+    if 'username' not in session:
+        flash('You need to log in to access the dashboard.', 'warning')
+        return redirect(url_for('main.login'))
+    
+    if size not in DATA:
+        return jsonify({"message": "Invalid size."}), 400
+    
+    try:
+        count = int(count)
+    except ValueError:
+        return jsonify({"message": "Invalid count. Must be a number."}), 400
+    
+    if DATA[size]["count"]+1 > count:
+        return jsonify({"message": "Quota must be greater than current count."f" Current count: {DATA[size]['count']}"}), 400
+    
+    DATA[size]["quota"] = count
+    return jsonify({"status": "success",
+                    "message": "Quota updated successfully.",
+                    "value": DATA[size]})
 
 @main.route('/log', methods=['GET'])
 def log():
