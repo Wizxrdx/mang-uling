@@ -90,9 +90,11 @@ def put_status(size):
 
 @main.route('/count/<size>', methods=['PUT'])
 def count(size):
-    global DATA
+    global DATA, IS_BUSY
     if request.method == 'PUT':
         DATA[size]["count"] += 1
+        if DATA[size]["count"] >= DATA[size]["quota"]:
+            IS_BUSY = False
         return jsonify({"status": "success", "message": "Count updated successfully."})
     
 @main.route('/quota/<size>', methods=['GET'])
