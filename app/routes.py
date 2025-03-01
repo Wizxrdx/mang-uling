@@ -5,7 +5,7 @@ from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Length
 
 from .models import BagType, DailyProduction, Employee
-from .data import IS_BUSY, DATA, WEEKLY_LOG, TODAY, lock
+from .data import IS_BUSY, DATA, WEEKLY_LOG, TODAY, lock, update_production_record
 
 # Blueprint setup
 main = Blueprint('main', __name__)
@@ -92,7 +92,7 @@ def put_status(size):
 def count(size):
     global DATA, IS_BUSY
     if request.method == 'PUT':
-        DATA[size]["count"] += 1
+        update_production_record(size, 1)
         if DATA[size]["count"] >= DATA[size]["quota"]:
             IS_BUSY = False
         return jsonify({"status": "success", "message": "Count updated successfully."})
