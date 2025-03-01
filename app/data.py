@@ -6,8 +6,8 @@ lock = threading.Lock()
 
 IS_BUSY = False
 DATA = {
-    "1kg": {"size": 1, "count": 0, "quota": 100},
-    "10kg": {"size": 10, "count": 0, "quota": 50},
+    "1kg": {"size": 1, "count": 0, "quota": 0},
+    "10kg": {"size": 10, "count": 0, "quota": 0},
 }
 WEEKLY_LOG = {}
 TODAY = datetime.today()
@@ -18,8 +18,8 @@ def initialize_data():
 
     # fetch forecasted data for and add as quota
     DATA = {
-        "1kg": {"size": 1, "count": 10, "quota": 100},
-        "10kg": {"size": 10, "count": 0, "quota": 50},
+        "1kg": {"size": 1, "count": 1, "quota": 10},
+        "10kg": {"size": 10, "count": 0, "quota": 5},
     }
 
     # fetch weekly log data
