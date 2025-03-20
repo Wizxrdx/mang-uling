@@ -38,10 +38,12 @@ $(document).ready(function() {
     updateTable();
 
     var refreshId = setInterval(function() {
-        replaceWithContent("#status", "/status");
-        replaceWithContent("#1kg", "/quota/1kg");
-        replaceWithContent("#10kg", "/quota/10kg");
-        updateTable();
+        if (!$("#modal-1kg").hasClass("show") && !$("#modal-10kg").hasClass("show")) {  // Only update if modal is NOT open
+            replaceWithContent("#status", "/status");
+            replaceWithContent("#1kg", "/quota/1kg");
+            replaceWithContent("#10kg", "/quota/10kg");
+            updateTable();
+        }
     }, 3000);
 });
 
