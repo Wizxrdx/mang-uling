@@ -1,8 +1,10 @@
-from flask import render_template, Blueprint, redirect, url_for, session, flash, request, jsonify, abort
+from flask import render_template, Blueprint, redirect, url_for, session, flash, request, jsonify, send_file
 from datetime import datetime, timedelta
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Length
+from fpdf import FPDF
+import io
 
 from .models import BagType, DailyProduction, Employee
 from .data import IS_BUSY, DATA, WEEKLY_LOG, TODAY, lock, update_production_record
@@ -167,3 +169,46 @@ def log():
         "start_date": start_of_week.strftime("%b. %d, %Y"),
         "end_date": end_of_week.strftime("%b. %d, %Y")
     })
+
+@main.route('/generate_pdf', methods=['POST'])
+def generate_pdf():
+    selected_weeks = request.json.get('weeks', [])
+
+    pdf = FPDF(orientation="P", unit="mm", format="A4")
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    pdf.cell(200, 10, txt="Weekly Log Report", ln=True, align='C')
+    pdf.ln(10)
+
+    # Set column widths
+    col_widths = [60, 120]  # Month, Weeks inside that month
+
+    # Table header
+    pdf.set_font("Arial", style='B', size=12)
+    pdf.cell(col_widths[0], 10, "Month", border=1, align="C")
+    pdf.cell(col_widths[1], 10, "Weeks", border=1, align="C")
+    pdf.ln()
+
+    # Process selected weeks into a month-week format
+    month_weeks = {}
+    for week in selected_weeks:
+        month = week[:7]  # Extract "YYYY-MM" part from "YYYY-WW"
+        if month not in month_weeks:
+            month_weeks[month] = []
+        month_weeks[month].append(week)
+
+    # Fill table with data
+    pdf.set_font("Arial", size=12)
+    for month, weeks in month_weeks.items():
+        pdf.cell(col_widths[0], 10, month, border=1, align="C")
+        pdf.cell(col_widths[1], 10, ", ".join(weeks), border=1, align="C")
+        pdf.ln()
+
+    # Output PDF to memory
+    pdf_output = io.BytesIO()
+    pdf_output.write(pdf.output(dest="S").encode("latin1"))
+    pdf_output.seek(0)
+
+    return send_file(pdf_output, mimetype="application/pdf", as_attachment=False, download_name="log_report.pdf")
