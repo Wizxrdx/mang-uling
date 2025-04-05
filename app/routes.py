@@ -186,7 +186,7 @@ def generate_pdf():
 
     pdf.set_font("Arial", style='B', size=32)
     pdf.cell(0, 8, txt="Weekly Sales Report", ln=True, align='C')
-    pdf.ln(12)
+    pdf.ln(15)
 
     for week in selected_weeks:
         # Parse the week number from the input (e.g., "2025-W14")
@@ -215,8 +215,8 @@ def generate_pdf():
 
         # Create the table header with day of the week (Monday to Sunday)
         pdf.set_fill_color(200, 220, 255)
-        pdf.cell(30, 8, "", border=1, fill=True, align='C')
-        for day in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]:
+        pdf.cell(15, 8, "", border=1, fill=True, align='C')
+        for day in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "Total"]:
             pdf.set_font("Arial", style='B', size=12)
             pdf.cell(22, 8, day, border=1, fill=True, align='C')
         pdf.ln()
@@ -238,18 +238,22 @@ def generate_pdf():
 
         # Add 1kg values row
         pdf.set_font("Arial", style='B', size=12)
-        pdf.cell(30, 8, "1kg bags", border=1, align='C')
+        pdf.cell(15, 8, "1kg", border=1, align='C')
         for day in range(7):
             pdf.set_font("Arial", size=12)
             pdf.cell(22, 8, str(weekly_data[day]["1kg"]), border=1, align='C')
+        total = str(sum(weekly_data[day]["1kg"] for day in range(7)))
+        pdf.cell(22, 8, total, border=1, align='C')
         pdf.ln()
 
         # Add 10kg values row
         pdf.set_font("Arial", style='B', size=12)
-        pdf.cell(30, 8, "10kg bags", border=1, align='C')
+        pdf.cell(15, 8, "10kg", border=1, align='C')
         for day in range(7):
             pdf.set_font("Arial", size=12)
             pdf.cell(22, 8, str(weekly_data[day]["10kg"]), border=1, align='C')
+        total = str(sum(weekly_data[day]["10kg"] for day in range(7)))
+        pdf.cell(22, 8, total, border=1, align='C')
         pdf.ln()
 
         pdf.ln(5)
