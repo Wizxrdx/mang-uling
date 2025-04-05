@@ -66,7 +66,7 @@ def create_production_record(date, start_date=None):
     db.session.commit()
 
 def update_production_record(size, quantity):
-    global TODAY, DATA
+    global TODAY, DATA, WEEKLY_LOG
     DATA[size]["count"] += quantity
     # DailyProduction.query.filter_by(production_date=TODAY.strftime("%Y-%m-%d"), bag_type_id=BagType.query.filter_by(type=bag_type).first().id).update({"quantity": DATA[bag_type]["count"]})
     bag_type = BagType.query.filter_by(type=size).first().id
