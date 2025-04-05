@@ -99,16 +99,40 @@ document.addEventListener("DOMContentLoaded", function () {
         return weeks;
     }
 
+    function getDateRangeOfWeek(weekNo){
+        var d1 = new Date();
+        numOfdaysPastSinceLastMonday = eval(d1.getDay()- 1);
+        d1.setDate(d1.getDate() - numOfdaysPastSinceLastMonday);
+        var weekNoToday = d1.getWeek();
+        var weeksInTheFuture = eval( weekNo - weekNoToday );
+        d1.setDate(d1.getDate() + eval( 7 * weeksInTheFuture ));
+        var rangeIsFrom = eval(d1.getMonth()+1) +"/" + d1.getDate() + "/" + d1.getFullYear();
+        d1.setDate(d1.getDate() + 6);
+        var rangeIsTo = eval(d1.getMonth()+1) +"/" + d1.getDate() + "/" + d1.getFullYear() ;
+        return rangeIsFrom + " to "+rangeIsTo;
+    };
+
     function formatWeekLabel(weekValue) {
         if (!weekValue) return "Invalid Week";
     
         let [year, week] = weekValue.split("-W");
-        let date = new Date(year, 0, (week - 1) * 7 + 1); // Get first day of the week
-    
-        let month = date.toLocaleDateString("en-US", { month: "long" }); // Get month name
-        let weekNumber = getReadableWeekOfMonth(date); // Get 1st, 2nd, 3rd week
-    
-        return `${weekNumber}, ${year}`;
+
+        const startOfWeek = getStartOfISOWeek(year, week);
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        
+        const options = { month: "long", day: "numeric" };
+        return `${startOfWeek.toLocaleDateString(undefined, options)} – ${endOfWeek.toLocaleDateString(undefined, options)}, ${year}`;
+    }
+
+    function getStartOfISOWeek(year, weekNumber) {
+        const simpleDate = new Date(year, 0, 1 + (weekNumber - 1) * 7); // Start with first day of the year, adjusted by week number
+        const dayOfWeek = simpleDate.getDay(); // Get the day of the week (0 is Sunday, 1 is Monday, etc.)
+        
+        // Adjust to the previous Monday (ISO weeks start on Monday)
+        const date = simpleDate.getDate() - dayOfWeek + (dayOfWeek == 0 ? -6 : 1); // if Sunday, subtract 6, else subtract the day of the week - 1
+        
+        return new Date(simpleDate.setDate(date)); // Set the adjusted date and return it
     }
 
     // Function to get week number of a date
@@ -135,18 +159,6 @@ document.addEventListener("DOMContentLoaded", function () {
         downloadCheckbox.checked = false;
     });
 });
-
-function getReadableWeekOfMonth(date) {
-    const day = date.getDate();
-    
-    const start = new Date(date);
-    start.setDate(day - date.getDay() + 1); // Monday (adjusted for Sunday as the start of the week)
-    const end = new Date(start);
-    end.setDate(start.getDate() + 6); // Sunday
-
-    const options = { month: "long", day: "numeric" };
-    return `${start.toLocaleDateString(undefined, options)} – ${end.toLocaleDateString(undefined, options)}`;
-}
 
 document.addEventListener("DOMContentLoaded", function () {
     const openButton = document.getElementById("fetch-log");
