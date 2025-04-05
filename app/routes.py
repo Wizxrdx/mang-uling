@@ -177,16 +177,17 @@ def log():
 def generate_pdf():
     selected_weeks = request.json.get('weeks', [])
 
-    pdf = MyPDF(orientation="P", unit="mm", format="A4")
+    pdf = MyPDF(orientation="P", unit="mm", format="Letter")
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
     
     # Add an image at the top of the page
-    pdf.image('app/static/logo.jpg', x=5, y=15, w=30)
+    pdf.image('app/static/logo.jpg', x=5, y=20, w=40)
 
+    pdf.ln(10)
     pdf.set_font("Arial", style='B', size=32)
     pdf.cell(0, 8, txt="Weekly Sales Report", ln=True, align='C')
-    pdf.ln(15)
+    pdf.ln(20)
 
     for week in selected_weeks:
         # Parse the week number from the input (e.g., "2025-W14")
