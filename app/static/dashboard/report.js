@@ -106,16 +106,9 @@ document.addEventListener("DOMContentLoaded", function () {
         let date = new Date(year, 0, (week - 1) * 7 + 1); // Get first day of the week
     
         let month = date.toLocaleDateString("en-US", { month: "long" }); // Get month name
-        let weekNumber = getWeekOrderInMonth(date); // Get 1st, 2nd, 3rd week
+        let weekNumber = getReadableWeekOfMonth(date); // Get 1st, 2nd, 3rd week
     
-        return `${weekNumber} Week of ${month} ${year}`;
-    }
-
-    // Function to get first date of the week
-    function getDateFromWeek(year, week) {
-        let jan1 = new Date(year, 0, 1);
-        let daysOffset = (week - 1) * 7 + (jan1.getDay() <= 4 ? 1 - jan1.getDay() : 8 - jan1.getDay());
-        return new Date(year, 0, daysOffset);
+        return `${weekNumber}, ${year}`;
     }
 
     // Function to get week number of a date
@@ -143,14 +136,17 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-function getWeekOrderInMonth(date) {
-    let firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-    let weekOfMonth = Math.ceil((date.getDate() + firstDayOfMonth.getDay()) / 7);
+function getReadableWeekOfMonth(date) {
+    const day = date.getDate();
+    
+    const start = new Date(date);
+    start.setDate(day - date.getDay() + 1); // Monday (adjusted for Sunday as the start of the week)
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6); // Sunday
 
-    const weekNames = ["1st", "2nd", "3rd", "4th", "5th"];
-    return weekNames[weekOfMonth - 1] || `${weekOfMonth}th`;
+    const options = { month: "long", day: "numeric" };
+    return `${start.toLocaleDateString(undefined, options)} – ${end.toLocaleDateString(undefined, options)}`;
 }
-
 
 document.addEventListener("DOMContentLoaded", function () {
     const openButton = document.getElementById("fetch-log");

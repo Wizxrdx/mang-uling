@@ -6,6 +6,8 @@ from wtforms.validators import DataRequired, Length
 from fpdf import FPDF
 import io
 
+from app.utils import get_readable_week_of_month
+
 from .models import BagType, DailyProduction, Employee
 from .data import IS_BUSY, DATA, WEEKLY_LOG, TODAY, lock, update_production_record
 
@@ -175,36 +177,74 @@ def generate_pdf():
     selected_weeks = request.json.get('weeks', [])
 
     pdf = FPDF(orientation="P", unit="mm", format="A4")
-    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.set_auto_page_break(auto=True, margin=10)
     pdf.add_page()
     pdf.set_font("Arial", size=12)
 
-    pdf.cell(200, 10, txt="Weekly Log Report", ln=True, align='C')
+    pdf.cell(200, 10, txt="Weekly Sales Report", ln=True, align='C')
     pdf.ln(10)
 
-    # Set column widths
-    col_widths = [60, 120]  # Month, Weeks inside that month
-
-    # Table header
-    pdf.set_font("Arial", style='B', size=12)
-    pdf.cell(col_widths[0], 10, "Month", border=1, align="C")
-    pdf.cell(col_widths[1], 10, "Weeks", border=1, align="C")
-    pdf.ln()
-
-    # Process selected weeks into a month-week format
-    month_weeks = {}
     for week in selected_weeks:
-        month = week[:7]  # Extract "YYYY-MM" part from "YYYY-WW"
-        if month not in month_weeks:
-            month_weeks[month] = []
-        month_weeks[month].append(week)
+        # Parse the week number from the input (e.g., "2025-W14")
+        year, week_num = map(int, week.split('-W'))
+        week_num = int(week_num) - 1
 
-    # Fill table with data
-    pdf.set_font("Arial", size=12)
-    for month, weeks in month_weeks.items():
-        pdf.cell(col_widths[0], 10, month, border=1, align="C")
-        pdf.cell(col_widths[1], 10, ", ".join(weeks), border=1, align="C")
+        week_title = get_readable_week_of_month(year, week_num)
+        year = week.split('-')[0]
+        pdf.set_font("Arial", style='B', size=12)
+        pdf.cell(200, 10, f"{week_title}, {year}", ln=True)
+
+        # Get the first day (Monday) of the week using the iso year and week
+        week_start_date = datetime.strptime(f'{year}-W{week_num}-1', "%Y-W%U-%w")
+        week_end_date = week_start_date + timedelta(days=6)
+
+        # Query the daily sales data
+        daily_sales = DailyProduction.query \
+            .join(BagType) \
+            .filter(
+                DailyProduction.production_date.between(week_start_date.strftime('%Y-%m-%d'), week_end_date.strftime('%Y-%m-%d'))
+            ) \
+            .all()
+
+        if not daily_sales:
+            pdf.cell(200, 10, "No sales data available", ln=True)
+            continue
+
+        # Create the table header with day of the week (Monday to Sunday)
+        pdf.set_fill_color(200, 220, 255)
+        pdf.cell(30, 8, "", border=1, fill=True, align='C')
+        for day in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]:
+            pdf.cell(22, 8, day, border=1, fill=True, align='C')
         pdf.ln()
+
+        # Initialize a dictionary to store daily sales for each day of the week
+        weekly_data = {day: {"1kg": 0, "10kg": 0} for day in range(7)}  # Monday to Sunday
+
+        # Populate weekly data from the sales records
+        for record in daily_sales:
+            production_date = datetime.strptime(record.production_date, "%Y-%m-%d")
+            day_of_week = production_date.weekday()  # Monday = 0, Sunday = 6
+            bag_type = record.bag_type.type
+            quantity = record.quantity
+
+            if bag_type == "1kg":
+                weekly_data[day_of_week]["1kg"] += quantity
+            elif bag_type == "10kg":
+                weekly_data[day_of_week]["10kg"] += quantity
+
+        # Add 1kg values row
+        pdf.cell(30, 8, "1kg bags", border=1, align='C')
+        for day in range(7):
+            pdf.cell(22, 8, str(weekly_data[day]["1kg"]), border=1, align='C')
+        pdf.ln()
+
+        # Add 10kg values row
+        pdf.cell(30, 8, "10kg bags", border=1, align='C')
+        for day in range(7):
+            pdf.cell(22, 8, str(weekly_data[day]["10kg"]), border=1, align='C')
+        pdf.ln()
+
+        pdf.ln(5)
 
     # Output PDF to memory
     pdf_output = io.BytesIO()
