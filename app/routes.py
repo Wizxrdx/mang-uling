@@ -6,7 +6,8 @@ from wtforms.validators import DataRequired, Length
 from fpdf import FPDF
 import io
 
-from app.utils import get_readable_week_of_month
+from app.file_generation import MyPDF
+from app.utils import get_first_day_of_iso_week, get_readable_week_of_month
 
 from .models import BagType, DailyProduction, Employee
 from .data import IS_BUSY, DATA, WEEKLY_LOG, TODAY, lock, update_production_record
@@ -176,26 +177,27 @@ def log():
 def generate_pdf():
     selected_weeks = request.json.get('weeks', [])
 
-    pdf = FPDF(orientation="P", unit="mm", format="A4")
-    pdf.set_auto_page_break(auto=True, margin=10)
+    pdf = MyPDF(orientation="P", unit="mm", format="A4")
+    pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
-    pdf.set_font("Arial", size=12)
+    
+    # Add an image at the top of the page
+    pdf.image('app/static/logo.jpg', x=5, y=15, w=30)
 
-    pdf.cell(200, 10, txt="Weekly Sales Report", ln=True, align='C')
-    pdf.ln(10)
+    pdf.set_font("Arial", style='B', size=32)
+    pdf.cell(0, 8, txt="Weekly Sales Report", ln=True, align='C')
+    pdf.ln(12)
 
     for week in selected_weeks:
         # Parse the week number from the input (e.g., "2025-W14")
         year, week_num = map(int, week.split('-W'))
-        week_num = int(week_num) - 1
 
         week_title = get_readable_week_of_month(year, week_num)
-        year = week.split('-')[0]
-        pdf.set_font("Arial", style='B', size=12)
+        pdf.set_font("Arial", style='B', size=14)
         pdf.cell(200, 10, f"{week_title}, {year}", ln=True)
 
         # Get the first day (Monday) of the week using the iso year and week
-        week_start_date = datetime.strptime(f'{year}-W{week_num}-1', "%Y-W%U-%w")
+        week_start_date = get_first_day_of_iso_week(year, week_num)
         week_end_date = week_start_date + timedelta(days=6)
 
         # Query the daily sales data
@@ -205,7 +207,8 @@ def generate_pdf():
                 DailyProduction.production_date.between(week_start_date.strftime('%Y-%m-%d'), week_end_date.strftime('%Y-%m-%d'))
             ) \
             .all()
-
+        
+        pdf.set_font("Arial", size=12)
         if not daily_sales:
             pdf.cell(200, 10, "No sales data available", ln=True)
             continue
@@ -214,6 +217,7 @@ def generate_pdf():
         pdf.set_fill_color(200, 220, 255)
         pdf.cell(30, 8, "", border=1, fill=True, align='C')
         for day in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]:
+            pdf.set_font("Arial", style='B', size=12)
             pdf.cell(22, 8, day, border=1, fill=True, align='C')
         pdf.ln()
 
@@ -233,14 +237,18 @@ def generate_pdf():
                 weekly_data[day_of_week]["10kg"] += quantity
 
         # Add 1kg values row
+        pdf.set_font("Arial", style='B', size=12)
         pdf.cell(30, 8, "1kg bags", border=1, align='C')
         for day in range(7):
+            pdf.set_font("Arial", size=12)
             pdf.cell(22, 8, str(weekly_data[day]["1kg"]), border=1, align='C')
         pdf.ln()
 
         # Add 10kg values row
+        pdf.set_font("Arial", style='B', size=12)
         pdf.cell(30, 8, "10kg bags", border=1, align='C')
         for day in range(7):
+            pdf.set_font("Arial", size=12)
             pdf.cell(22, 8, str(weekly_data[day]["10kg"]), border=1, align='C')
         pdf.ln()
 
