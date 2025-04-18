@@ -1,7 +1,14 @@
 import threading
 from datetime import datetime, timedelta
 
-from .models import BagType, DailyProduction
+from sqlalchemy import func
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
+
+from app import utils
+from forecasting import get_parameters, perform_forecast
+
+from .models import BagType, DailyForecast, DailyProduction
 from . import db
 
 lock = threading.Lock()
@@ -17,6 +24,23 @@ TODAY = datetime.today()
 def initialize_data():
     global DATA, IS_BUSY, WEEKLY_LOG, TODAY
     IS_BUSY = False
+    
+    data_df = utils.data_to_dataframe(get_production_record())
+    print(data_df.columns)
+    data_1kg = data_df.drop(['quantity_10kg', 'production_date'], axis=1)
+    data_10kg = data_df.drop(['quantity_1kg', 'production_date'], axis=1)
+    order_1kg, seasonal_order_1kg = get_parameters(data_1kg, True)
+    order_10kg, seasonal_order_10kg = get_parameters(data_10kg, False)
+
+    # perform forecasting
+    forecast_1kg = perform_forecast(order_1kg, seasonal_order_1kg, data_1kg, days=30)
+    forecast_10kg = perform_forecast(order_10kg, seasonal_order_10kg, data_10kg, days=30)
+
+    print("Forecast for 1kg")
+    print(forecast_1kg)
+
+    print("Forecast for 10kg")
+    print(forecast_10kg)
 
     # there might be days without any production
     last_daily_production_date = DailyProduction.query.order_by(DailyProduction.production_date.desc()).first().production_date
@@ -37,6 +61,7 @@ def initialize_data():
             WEEKLY_LOG[entry.production_date]["bag_10kg"] = entry.quantity
 
     # fetch forecasted data for and add as quota
+    forecasted_data = DailyForecast.query.filter(DailyForecast.forecast_date.between(start_of_week.strftime("%Y-%m-%d"), end_of_week.strftime("%Y-%m-%d"))).all()
     today_data = WEEKLY_LOG[TODAY.strftime("%Y-%m-%d")]
     DATA = {
         "1kg": {"size": 1, "count": today_data['bag_1kg'], "quota": 10},
@@ -44,6 +69,20 @@ def initialize_data():
     }
 
     print("Global variables initialized successfully.")
+
+def get_production_record(start_date=None, end_date=None):
+    query = db.session.query(
+        DailyProduction.production_date,
+        BagType.type,
+        func.sum(DailyProduction.quantity).label("total_quantity")
+    ).join(BagType)
+
+    if start_date and end_date:
+        query = query.filter(DailyProduction.production_date.between(start_date, end_date))
+
+    query = query.group_by(DailyProduction.production_date, BagType.type)
+
+    return query.all()
 
 def create_production_record(date, start_date=None):
     bag_types = {bt.type: bt.id for bt in BagType.query.all()}

@@ -3,42 +3,51 @@ import pickle
 from datetime import datetime
 from pmdarima import auto_arima
 from statsmodels.tsa.statespace.sarimax import SARIMAX
+import pandas as pd
 
 MODEL_PATH = "models"
 
 
-def get_order(data):
+def get_parameters(data, is_1kg=True):
     current_month = datetime.now().strftime("%Y-%m")
-    file_name = f"{current_month}.pkl" # should be 2025-02.pkl
+    if is_1kg:
+        bag_type = '1_kg'
+    else:
+        bag_type = '10_kg'
+    file_name = f"{bag_type}_{current_month}.pkl" # should be 1_kg_2025-02.pkl
     current_order_path = os.path.join(MODEL_PATH, file_name)
 
     if not os.path.isfile(current_order_path):
         # Create a new order file
         print("Order for this month does not exist. Creating a new one...")
-        order = auto_arima(data, seasonal=True, m=7, stepwise=True)
+        parameters = auto_arima(data, seasonal=True, m=7, stepwise=True)
         print(f"Order for {current_month} created.")
         # save the order file
         print(f"Saving order to '{file_name}'...")
-        with open(current_order_path, "w") as file:
-            pickle.dump(order, file)
+        with open(current_order_path, "wb") as save_file:
+            pickle.dump(parameters, save_file)
         print(f"File '{file_name}' created.")
     else:
         print(f"File '{file_name}' exists. loading the order...")
         # Load the existing order file
-        with open(current_order_path, "r") as file:
-            order_data = pickle.load(file)
+        with open(current_order_path, "rb") as saved_file:
+            parameters = pickle.load(saved_file)
 
-    return order
+    return (parameters.order, parameters.seasonal_order)
 
-def create_arima_model(data):
-    # Create the ARIMA model
-    model = SARIMAX(data, order=(5,1,0))
-    
-    # Fit the model
-    model_fit = model.fit(disp=0)
-    
-    return model_fit
+def perform_forecast(order, seasonal_order, data, days=30):
+    predictions = []
 
+    for i in range(days):
+        # Train a new SARIMA model using only the last 6 months
+        rolling_model = SARIMAX(data, order=order, seasonal_order=seasonal_order).fit()
+        
+        # Predict the next day's sales
+        forecast = rolling_model.forecast()
+        predictions.append(round(forecast.values[0]))
+        
+        # Append forecasted value to history for the next iteration
+        history = pd.concat([data, pd.Series(forecast.values[0], index=[data.index[i]])])
 
-if __name__ == "__main__":
-    get_order("data")
+    # Store the forecasts in DataFrame
+    return predictions

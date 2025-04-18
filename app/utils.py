@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 
+import pandas as pd
+
 
 def get_first_day_of_iso_week(year, week_num):
     # Get a date object for the first day of the given ISO week
@@ -27,3 +29,20 @@ def get_readable_week_of_month(year, week_num):
     readable_week = f"{start_of_week.strftime('%b %d')} - {end_of_week.strftime('%b %d')}"
     
     return readable_week
+
+def data_to_dataframe(results):
+    data = {}
+    for date, bag_type, quantity in results:
+        if date not in data:
+            data[date] = {"quantity_1kg": 0, "quantity_10kg": 0}
+        if bag_type == "1kg":
+            data[date]["quantity_1kg"] = quantity
+        elif bag_type == "10kg":
+            data[date]["quantity_10kg"] = quantity
+
+    # Create DataFrame
+    df = pd.DataFrame([
+        {"production_date": date, **vals} for date, vals in data.items()
+    ]).sort_values("production_date")
+
+    return df
