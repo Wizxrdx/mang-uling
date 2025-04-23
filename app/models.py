@@ -11,7 +11,7 @@ class DailyForecast(db.Model):
     forecast_date = db.Column(db.String(10), nullable=False, default=datetime.now(timezone.utc).strftime("%Y-%m-%d"))
     bag_type_id = db.Column(db.Integer, db.ForeignKey('bag_type.id', name='fk_daily_forecast_bag_type_id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
-    change = db.Column(db.Integer, nullable=False)
+    change = db.Column(db.Integer, nullable=True)
     updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
     bag_type = db.relationship('BagType', backref=db.backref('forecasts', lazy=True))

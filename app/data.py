@@ -1,12 +1,14 @@
 import threading
 from datetime import datetime, timedelta
+import pandas as pd
 
 from sqlalchemy import func
 import warnings
+from statsmodels.tools.sm_exceptions import ValueWarning
 warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=ValueWarning)
 
-from app import utils
-from forecasting import get_parameters, perform_forecast
+from forecasting import create_monthly_forecast, get_parameters, is_new_month, perform_forecast
 
 from .models import BagType, DailyForecast, DailyProduction
 from . import db
@@ -25,22 +27,11 @@ def initialize_data():
     global DATA, IS_BUSY, WEEKLY_LOG, TODAY
     IS_BUSY = False
     
-    data_df = utils.data_to_dataframe(get_production_record())
-    print(data_df.columns)
-    data_1kg = data_df.drop(['quantity_10kg', 'production_date'], axis=1)
-    data_10kg = data_df.drop(['quantity_1kg', 'production_date'], axis=1)
-    order_1kg, seasonal_order_1kg = get_parameters(data_1kg, True)
-    order_10kg, seasonal_order_10kg = get_parameters(data_10kg, False)
+    if is_new_month():
+        data = get_production_record()
+        forecast_1kg, forecast_10kg = create_monthly_forecast(data)
 
-    # perform forecasting
-    forecast_1kg = perform_forecast(order_1kg, seasonal_order_1kg, data_1kg, days=30)
-    forecast_10kg = perform_forecast(order_10kg, seasonal_order_10kg, data_10kg, days=30)
-
-    print("Forecast for 1kg")
-    print(forecast_1kg)
-
-    print("Forecast for 10kg")
-    print(forecast_10kg)
+        create_forecast_record(forecast_1kg, forecast_10kg)
 
     # there might be days without any production
     last_daily_production_date = DailyProduction.query.order_by(DailyProduction.production_date.desc()).first().production_date
@@ -112,3 +103,38 @@ def update_production_record(size, quantity):
     record = DailyProduction.query.filter_by(production_date=TODAY.strftime("%Y-%m-%d"), bag_type_id=bag_type).first()
     record.quantity = DATA[size]["count"]
     db.session.commit()
+
+def create_forecast_record(data_1kg, data_10kg):
+    # 1kg data
+    for date, row in data_1kg.iterrows():
+        quantity = 0 if row['forecast'] < 1 else row['forecast']
+        forecast = DailyForecast(
+            forecast_date=date.strftime('%Y-%m-%d'),
+            bag_type_id=0,
+            quantity=quantity
+        )
+        db.session.add(forecast)
+
+    # 10kg data
+    for date, row in data_10kg.iterrows():
+        quantity = 0 if row['forecast'] < 1 else row['forecast']
+        forecast = DailyForecast(
+            forecast_date=date.strftime('%Y-%m-%d'),
+            bag_type_id=1,
+            quantity=quantity
+        )
+        db.session.add(forecast)
+
+    db.session.commit()
+
+def get_forecast_record(start_date=None, end_date=None):
+    query = db.session.query(
+        DailyForecast.forecast_date,
+        BagType.type,
+        DailyForecast.quantity
+    ).join(BagType)
+
+    if start_date and end_date:
+        query = query.filter(DailyForecast.forecast_date.between(start_date, end_date))
+
+    return query.all()

@@ -30,6 +30,14 @@ def get_readable_week_of_month(year, week_num):
     
     return readable_week
 
+def get_days_left_in_month():
+    today = datetime.today()
+    next_month = today.replace(day=28) + timedelta(days=4)  # this will never fail
+    last_day_of_next_month = next_month - timedelta(days=next_month.day)
+    days_left = (last_day_of_next_month - today).days + 1  # +1 to include today
+
+    return days_left
+
 def data_to_dataframe(results):
     data = {}
     for date, bag_type, quantity in results:
