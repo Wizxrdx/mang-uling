@@ -133,7 +133,8 @@ def get_quota(size):
                            value=DATA[size]["count"],
                            max=DATA[size]["quota"],
                            progress=f"{prog:.2f}%",
-                           eta="ETA: 2 hours")
+                        #    eta="ETA: 2 hours"
+                           )
 
 @main.route('/quota/<size>/<count>', methods=['POST'])
 def post_quota(size, count):
