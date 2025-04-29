@@ -33,8 +33,8 @@ def create_app():
             print("Database upgrade completed!")
             populate_bag_types(db)
             populate_credentials(db)
-            # populate_with_real_data(db)
-            populate_with_fake_data(db)
+            populate_with_real_data(db)
+            # populate_with_fake_data(db)
 
         else:
             print("Database already exists. Skipping upgrade.")
