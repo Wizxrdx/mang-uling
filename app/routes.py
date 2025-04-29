@@ -124,7 +124,7 @@ def get_quota(size):
 </button>"""
     button = stop_button if IS_BUSY == size else run_button
     return render_template('control.html',
-                           title=f"{str(DATA[size]["size"])} kg bags",
+                           title=f"{str(DATA[size]['size'])} kg bags",
                            subtitle="Packing Progress Report",
                            id=size,
                            start_button=button,
