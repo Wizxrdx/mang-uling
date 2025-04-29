@@ -7,8 +7,9 @@ import warnings
 from statsmodels.tools.sm_exceptions import ValueWarning
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=ValueWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
 
-from forecasting import create_monthly_forecast, get_parameters, is_new_month, perform_forecast
+from forecasting import create_monthly_forecast, is_new_month
 
 from .models import BagType, DailyForecast, DailyProduction
 from . import db
@@ -30,7 +31,7 @@ def initialize_data():
     if is_new_month():
         data = get_production_record()
         forecast_1kg, forecast_10kg = create_monthly_forecast(data)
-
+        print(forecast_1kg)
         create_forecast_record(forecast_1kg, forecast_10kg)
 
     # there might be days without any production
