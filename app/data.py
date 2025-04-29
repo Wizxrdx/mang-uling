@@ -52,11 +52,16 @@ def initialize_data():
             WEEKLY_LOG[entry.production_date]["bag_10kg"] = entry.quantity
 
     # fetch forecasted data for and add as quota
-    forecasted_data = DailyForecast.query.filter(DailyForecast.forecast_date.between(start_of_week.strftime("%Y-%m-%d"), end_of_week.strftime("%Y-%m-%d"))).all()
+    forecasted_data_1kg_entry = get_forecast_record(TODAY.strftime("%Y-%m-%d"), bag=0)
+    forecasted_data_10kg_entry = get_forecast_record(TODAY.strftime("%Y-%m-%d"), bag=1)
+    print(forecasted_data_1kg_entry.quantity, forecasted_data_10kg_entry.quantity)
+    forecasted_data_1kg = 1 if forecasted_data_1kg_entry.quantity == 0 else forecasted_data_1kg_entry.quantity
+    forecasted_data_10kg = 1 if forecasted_data_10kg_entry.quantity == 0 else forecasted_data_10kg_entry.quantity
+
     today_data = WEEKLY_LOG[TODAY.strftime("%Y-%m-%d")]
     DATA = {
-        "1kg": {"size": 1, "count": today_data['bag_1kg'], "quota": 10},
-        "10kg": {"size": 10, "count": today_data['bag_10kg'], "quota": 5},
+        "1kg": {"size": 1, "count": today_data['bag_1kg'], "quota": int(forecasted_data_1kg)},
+        "10kg": {"size": 10, "count": today_data['bag_10kg'], "quota": int(forecasted_data_10kg)},
     }
 
     print("Global variables initialized successfully.")
@@ -107,7 +112,7 @@ def update_production_record(size, quantity):
 def create_forecast_record(data_1kg, data_10kg):
     # 1kg data
     for date, row in data_1kg.iterrows():
-        quantity = 0 if row['forecast'] < 1 else row['forecast']
+        quantity = 0 if int(row['forecast']) < 1 else int(row['forecast'])
         forecast = DailyForecast(
             forecast_date=date.strftime('%Y-%m-%d'),
             bag_type_id=0,
@@ -117,7 +122,7 @@ def create_forecast_record(data_1kg, data_10kg):
 
     # 10kg data
     for date, row in data_10kg.iterrows():
-        quantity = 0 if row['forecast'] < 1 else row['forecast']
+        quantity = 0 if int(row['forecast']) < 1 else int(row['forecast'])
         forecast = DailyForecast(
             forecast_date=date.strftime('%Y-%m-%d'),
             bag_type_id=1,
@@ -127,14 +132,6 @@ def create_forecast_record(data_1kg, data_10kg):
 
     db.session.commit()
 
-def get_forecast_record(start_date=None, end_date=None):
-    query = db.session.query(
-        DailyForecast.forecast_date,
-        BagType.type,
-        DailyForecast.quantity
-    ).join(BagType)
-
-    if start_date and end_date:
-        query = query.filter(DailyForecast.forecast_date.between(start_date, end_date))
-
-    return query.all()
+def get_forecast_record(date, bag):
+    if date is not None and bag is not None:
+        return DailyForecast.query.filter_by(forecast_date=date, bag_type_id=bag).first()
