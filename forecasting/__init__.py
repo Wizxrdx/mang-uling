@@ -29,10 +29,10 @@ def create_monthly_forecast(data):
     data_10kg = data_df.drop(['quantity_1kg'], axis=1)
 
     order_1kg, seasonal_order_1kg, order_10kg, seasonal_order_10kg = get_parameters(data_1kg, data_10kg)
-    days_left = utils.get_days_left_in_month()
+    first_day, days_in_month = utils.get_days_in_month()
 
-    forecast_1kg = perform_forecast(order_1kg, seasonal_order_1kg, data_1kg, days=days_left, forecast_days=FORECAST_DAYS_1KG)
-    forecast_10kg = perform_forecast(order_10kg, seasonal_order_10kg, data_10kg, days=days_left, forecast_days=FORECAST_DAYS_10KG)
+    forecast_1kg = perform_forecast(order_1kg, seasonal_order_1kg, data_1kg, start_date=first_day, days=days_in_month, forecast_days=FORECAST_DAYS_1KG)
+    forecast_10kg = perform_forecast(order_10kg, seasonal_order_10kg, data_10kg, start_date=first_day, days=days_in_month, forecast_days=FORECAST_DAYS_10KG)
 
     return (forecast_1kg, forecast_10kg)
 
@@ -82,8 +82,8 @@ def get_parameters(data_1kg, data_10kg):
 
     return (parameters_1kg.order, parameters_1kg.seasonal_order, parameters_10kg.order, parameters_10kg.seasonal_order)
 
-def perform_forecast(order, seasonal_order, data, days=30, forecast_days=60):
-    forecast_df = pd.DataFrame(index=pd.date_range(data.index[-1], periods=days, freq="D"))
+def perform_forecast(order, seasonal_order, data, start_date, days=30, forecast_days=60):
+    forecast_df = pd.DataFrame(index=pd.date_range(start_date, periods=days, freq="D"))
     history = data[-forecast_days:]  # Use last 60 days for training
     predictions = []
 
