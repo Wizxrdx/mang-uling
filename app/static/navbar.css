@@ -79,6 +79,7 @@ nav ul li a:hover {
         height: 100vh;
         background-color: #FF5C00;
         transition: left 0.3s ease-in-out;
+        overflow: hidden;
     }
 
     .nav-toggle {
