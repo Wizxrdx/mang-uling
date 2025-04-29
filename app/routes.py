@@ -111,7 +111,7 @@ def get_quota(size):
     if size not in DATA:
         return jsonify({"status": "error", "message": "Invalid size."}), 400
     
-    msg = f"{str(DATA[size]["count"])}/{str(DATA[size]["quota"])} bags"
+    msg = f"{str(DATA[size]['count'])}/{str(DATA[size]['quota'])} bags"
     prog = (DATA[size]["count"] / DATA[size]["quota"]) * 100
     run_button = f"""<button class="control-button" id="run-{size}" tooltip="Run the process">
 <span class="material-symbols-outlined" id="icon">manufacturing</span>
