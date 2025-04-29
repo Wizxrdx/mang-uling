@@ -5,11 +5,13 @@ import pandas as pd
 from sqlalchemy import func
 import warnings
 from statsmodels.tools.sm_exceptions import ValueWarning
+
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=ValueWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
 from forecasting import create_monthly_forecast, is_new_month
+from machine.comms import start_1kg, start_10kg
 
 from .models import BagType, DailyForecast, DailyProduction
 from . import db
@@ -69,8 +71,10 @@ def initialize_data():
 
     if DATA["1kg"]["count"] < DATA["1kg"]["quota"]:
         IS_BUSY = "1kg"
+        start_1kg()
     elif DATA["10kg"]["count"] < DATA["10kg"]["quota"]:
         IS_BUSY = "10kg"
+        start_10kg()
     else:
         IS_BUSY = False
 
