@@ -1,3 +1,4 @@
 #!/bin/bash
 
-venv/bin/python run.py
+venv/bin/python ./run.py
+read -p "Press enter to exit..."

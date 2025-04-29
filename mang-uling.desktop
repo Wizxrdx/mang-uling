@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Mang Uling
+Exec=/home/ericka/Desktop/mang-uling/run.sh
+Icon=utilities-terminal
+Terminal=true
+StartupNotify=false
+Path=/home/ericka/Desktop/mang-uling
