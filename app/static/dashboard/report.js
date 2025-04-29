@@ -2,8 +2,44 @@ document.addEventListener("DOMContentLoaded", function () {
     const modal = new bootstrap.Modal(document.getElementById("weekSelectionModal"));
     const weekContainer = document.getElementById("week-container");
     const addWeekBtn = document.getElementById("add-week");
-    const openWeekBtn = document.getElementById("open-week-data");
     const downloadCheckbox = document.getElementById("download-checkbox");
+    const openButton = document.getElementById("fetch-log");
+
+    openButton.addEventListener("click", function () {
+        let weeks = [];
+        document.querySelectorAll(".week-input").forEach(input => {
+            if (input.value) weeks.push(input.value);
+        });
+
+        if (weeks.length === 0) {
+            alert("Please select at least one week.");
+            return;
+        }
+
+        fetch("/generate_pdf", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ weeks: weeks })
+        })
+        .then(response => response.blob())
+        .then(blob => {
+            const pdfUrl = URL.createObjectURL(blob);
+            
+            // Open PDF in a new tab
+            window.open(pdfUrl, "_blank");
+
+            // Download if checkbox is checked
+            if (downloadCheckbox.checked) {
+                const a = document.createElement("a");
+                a.href = pdfUrl;
+                a.download = "log_report.pdf";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        })
+        .catch(error => console.error("Error:", error));
+    });
 
     // Open Modal
     document.getElementById("open-week-modal").addEventListener("click", function () {
@@ -143,60 +179,4 @@ document.addEventListener("DOMContentLoaded", function () {
         let yearStart = new Date(temp.getFullYear(), 0, 1);
         return Math.ceil((((temp - yearStart) / 86400000) + 1) / 7);
     }
-
-    // Handle Open button click (resets the modal)
-    openWeekBtn.addEventListener("click", function () {
-        let selectedWeeks = Array.from(document.querySelectorAll(".week-input"))
-            .map(input => input.value)
-            .filter(value => value !== "");
-
-        console.log("Selected Weeks:", selectedWeeks);
-        console.log("Download:", downloadCheckbox.checked ? "Yes" : "No");
-
-        modal.hide();
-        weekContainer.innerHTML = ""; // Reset selection
-        addWeekEntry(""); // Add one default input
-        downloadCheckbox.checked = false;
-    });
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-    const openButton = document.getElementById("fetch-log");
-    const downloadCheckbox = document.getElementById("download-checkbox");
-
-    openButton.addEventListener("click", function () {
-        let weeks = [];
-        document.querySelectorAll(".week-input").forEach(input => {
-            if (input.value) weeks.push(input.value);
-        });
-
-        if (weeks.length === 0) {
-            alert("Please select at least one week.");
-            return;
-        }
-
-        fetch("/generate_pdf", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ weeks: weeks })
-        })
-        .then(response => response.blob())
-        .then(blob => {
-            const pdfUrl = URL.createObjectURL(blob);
-            
-            // Open PDF in a new tab
-            window.open(pdfUrl, "_blank");
-
-            // Download if checkbox is checked
-            if (downloadCheckbox.checked) {
-                const a = document.createElement("a");
-                a.href = pdfUrl;
-                a.download = "log_report.pdf";
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            }
-        })
-        .catch(error => console.error("Error:", error));
-    });
 });
