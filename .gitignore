@@ -38,3 +38,4 @@ build/
 parameters/*
 
 hx711py/
+drivers/

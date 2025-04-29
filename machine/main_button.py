@@ -6,17 +6,17 @@ import RPi.GPIO as GPIO
 class Machine:
     _instance = None
 
-    def __new__(cls, system):
+    def __new__(cls):
         if cls._instance is None:
             cls._instance = super(Machine, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self, system):
+    def __init__(self):
         if hasattr(self, '_initialized') and self._initialized:
             return
         self._initialized = True
 
-        self.system = system
+        self.system = None
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
 
