@@ -42,6 +42,10 @@ class Machine:
         self.system_thread = None
 
     def start_pressed(self):
+        if self.system is None:
+            print("No system selected.")
+            return
+        
         if self.system_thread is None or not self.system_thread.is_alive():
             print("START button pressed!")
             GPIO.output(self.VIBRATOR1_PIN, GPIO.HIGH)
