@@ -10,7 +10,7 @@ from gpiozero import AngularServo, Device
 from gpiozero.pins.pigpio import PiGPIOFactory
 from time import sleep
 
-
+GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 GPIO.cleanup()
 
