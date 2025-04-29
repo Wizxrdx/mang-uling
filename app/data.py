@@ -16,11 +16,13 @@ from . import db
 
 lock = threading.Lock()
 
-IS_BUSY = False
+IS_BUSY = "1kg"
+
 DATA = {
     "1kg": {"size": 1, "count": 0, "quota": 0},
     "10kg": {"size": 10, "count": 0, "quota": 0},
 }
+
 WEEKLY_LOG = {}
 TODAY = datetime.today()
 
@@ -64,6 +66,13 @@ def initialize_data():
         "1kg": {"size": 1, "count": today_data['bag_1kg'], "quota": int(forecasted_data_1kg)},
         "10kg": {"size": 10, "count": today_data['bag_10kg'], "quota": int(forecasted_data_10kg)},
     }
+
+    if DATA["1kg"]["count"] < DATA["1kg"]["quota"]:
+        IS_BUSY = "1kg"
+    elif DATA["10kg"]["count"] < DATA["10kg"]["quota"]:
+        IS_BUSY = "10kg"
+    else:
+        IS_BUSY = False
 
     print("Global variables initialized successfully.")
 
