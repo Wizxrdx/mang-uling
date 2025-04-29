@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import requests
 import time
 from hx711py.hx711 import HX711
 import RPi.GPIO as GPIO
@@ -9,7 +10,6 @@ from gpiozero import AngularServo, Device
 from gpiozero.pins.pigpio import PiGPIOFactory
 from time import sleep
 
-from machine.comms import finish_10kg
 
 GPIO.setwarnings(False)
 GPIO.cleanup()
@@ -104,6 +104,9 @@ def reset_system():
     state["waiting_for_reset"] = False
     state["package_ready"] = False
     threading.Thread(target=activate_top_servo_open).start()
+    
+def finish_1kg():
+    requests.put("http://127.0.0.1:5000/count/1kg")
 
 # --- Main control function ---
 def run_system():
