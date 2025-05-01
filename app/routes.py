@@ -148,7 +148,8 @@ def get_quota(size):
 
 @main.route('/quota/<size>/<count>', methods=['POST'])
 def post_quota(size, count):
-    global DATA
+    DATA = State().DATA
+    
     if 'username' not in session:
         flash('You need to log in to access the dashboard.', 'warning')
         return redirect(url_for('main.login'))
