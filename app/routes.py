@@ -102,11 +102,13 @@ def put_status(size):
 
 @main.route('/count/<size>', methods=['PUT'])
 def count(size):
+    DATA = State().DATA
+
     if request.method == 'PUT':
         State().update_production_record(size, 1)
         if DATA[size]["count"] >= DATA[size]["quota"]:
-            # auto_start()
-            pass
+            State().set_notification(size)
+            State().auto_start()
         return jsonify({"status": "success", "message": "Count updated successfully."})
     
 @main.route('/quota/<size>', methods=['GET'])
@@ -149,7 +151,7 @@ def get_quota(size):
 @main.route('/quota/<size>/<count>', methods=['POST'])
 def post_quota(size, count):
     DATA = State().DATA
-    
+
     if 'username' not in session:
         flash('You need to log in to access the dashboard.', 'warning')
         return redirect(url_for('main.login'))
@@ -165,29 +167,14 @@ def post_quota(size, count):
     if DATA[size]["count"]+1 > count:
         return jsonify({"message": "Quota must be greater than current count."f" Current count: {DATA[size]['count']}"}), 400
     
-    DATA[size]["quota"] = count
+    State().update_quota(datetime.now(), size, count)
     return jsonify({"status": "success",
                     "message": "Quota updated successfully.",
                     "value": DATA[size]})
 
-@main.route('/notify', methods=['GET'])
-def notify():
-    def event_stream():
-        while True:
-            global notification_flag
-            if notification_flag:
-                notification_flag = False
-                yield 'data: Packing finished!\n\n'
-            time.sleep(1)
-    return Response(event_stream(), mimetype="text/event-stream")
-
-@main.route("/finish", methods=['POST'])
-def finish_notify():
-    global notification_flag
-    if request.method == 'POST':
-        notification_flag = True
-        return jsonify({"status": "success", "message": "Notification sent."})
-    return jsonify({"status": "error", "message": "Invalid request."}), 400
+@main.route("/api/notify", methods=["GET"])
+def check_notification():
+    return jsonify({"message": State().get_notification()})
 
 @main.route('/log', methods=['GET'])
 def log():
