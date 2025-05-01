@@ -1,6 +1,10 @@
 import threading
 from datetime import datetime, timedelta
 
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
+
 from sqlalchemy import func
 from .models import BagType, DailyProduction, DailyForecast
 from . import db
@@ -25,7 +29,26 @@ class State:
             }
             self.WEEKLY_LOG = {}
             self.TODAY = datetime.today()
-            self.initialized = True  # Mark as initialized
+            self.NOTIFY = False
+            self.NOTIFY_MSG = None
+            self.initialized = True
+
+    def set_notification(self, msg):
+        self.NOTIFY = True
+        self.NOTIFY_MSG = msg
+
+    def clear_notification(self):
+        self.NOTIFY = False
+        self.NOTIFY_MSG = None
+
+    def check_notification(self):
+        return self.NOTIFY
+    
+    def get_notification(self):
+        with State._lock:
+            msg = self.NOTIFY_MSG
+            self.clear_notification()
+            return msg
 
     def initialize_data(self):
         self.IS_BUSY = False
@@ -50,15 +73,18 @@ class State:
             else:
                 self.WEEKLY_LOG[entry.production_date]["bag_10kg"] = entry.quantity
 
-        forecasted_data_1kg_entry = get_forecast_record(self.TODAY.strftime("%Y-%m-%d"), bag=0)
-        forecasted_data_10kg_entry = get_forecast_record(self.TODAY.strftime("%Y-%m-%d"), bag=1)
+        forecasted_data_1kg_entry = get_forecast_record(self.TODAY.strftime("%Y-%m-%d"), bag_type="1kg")
+        forecasted_data_10kg_entry = get_forecast_record(self.TODAY.strftime("%Y-%m-%d"), bag_type="10kg")
+        print(f"Forecasted data for 1kg: {forecasted_data_1kg_entry.quantity}, 10kg: {forecasted_data_10kg_entry.quantity}")
         forecasted_data_1kg = 1 if forecasted_data_1kg_entry.quantity == 0 else forecasted_data_1kg_entry.quantity
+        final_data_1kg = forecasted_data_1kg if forecasted_data_1kg_entry.change is None else forecasted_data_1kg_entry.change
         forecasted_data_10kg = 1 if forecasted_data_10kg_entry.quantity == 0 else forecasted_data_10kg_entry.quantity
+        final_data_10kg = forecasted_data_10kg if forecasted_data_10kg_entry.change is None else forecasted_data_10kg_entry.change
 
         today_data = self.WEEKLY_LOG[self.TODAY.strftime("%Y-%m-%d")]
         self.DATA = {
-            "1kg": {"size": 1, "count": today_data['bag_1kg'], "quota": int(forecasted_data_1kg)},
-            "10kg": {"size": 10, "count": today_data['bag_10kg'], "quota": int(forecasted_data_10kg)},
+            "1kg": {"size": 1, "count": today_data['bag_1kg'], "quota": int(final_data_1kg)},
+            "10kg": {"size": 10, "count": today_data['bag_10kg'], "quota": int(final_data_10kg)},
         }
 
         self.auto_start()
@@ -81,16 +107,34 @@ class State:
         else:
             self.start(None)
 
+    def update_quota(self, date, bag_type, quantity):
+        bag_type_id = BagType.query.filter_by(type=bag_type).first().id
+        self.DATA[bag_type]["quota"] = quantity
+        # Check if the quota already exists for the given date and bag type
+        existing_quota = DailyForecast.query.filter_by(forecast_date=date.strftime('%Y-%m-%d'), bag_type_id=bag_type_id).first()
+        if existing_quota:
+            # Update the existing quota record
+            existing_quota.change = quantity
+        else:
+            # Create a new quota record
+            quota = DailyForecast(
+                forecast_date=date.strftime('%Y-%m-%d'),
+                bag_type_id=bag_type_id,
+                quantity=0,
+                change=quantity
+            )
+
+            db.session.add(quota)
+        db.session.commit()
+
+
     def update_production_record(self, size, quantity):
-        global TODAY, DATA, WEEKLY_LOG
         self.DATA[size]["count"] += quantity
         # DailyProduction.query.filter_by(production_date=TODAY.strftime("%Y-%m-%d"), bag_type_id=BagType.query.filter_by(type=bag_type).first().id).update({"quantity": DATA[bag_type]["count"]})
         bag_type = BagType.query.filter_by(type=size).first().id
         record = DailyProduction.query.filter_by(production_date=self.TODAY.strftime("%Y-%m-%d"), bag_type_id=bag_type).first()
         record.quantity = self.DATA[size]["count"]
         db.session.commit()
-
-# app/state.py (continued)
 
 def get_production_record(start_date=None, end_date=None):
     query = db.session.query(
@@ -128,11 +172,13 @@ def create_production_record(date, start_date=None):
 
 def create_forecast_record(data_1kg, data_10kg):
     # 1kg data
+    bag_types = {bt.type: bt.id for bt in BagType.query.all()}
+
     for date, row in data_1kg.iterrows():
         quantity = 0 if int(row['forecast']) < 1 else int(row['forecast'])
         forecast = DailyForecast(
             forecast_date=date.strftime('%Y-%m-%d'),
-            bag_type_id=0,
+            bag_type_id=bag_types["1kg"],
             quantity=quantity
         )
         db.session.add(forecast)
@@ -142,13 +188,14 @@ def create_forecast_record(data_1kg, data_10kg):
         quantity = 0 if int(row['forecast']) < 1 else int(row['forecast'])
         forecast = DailyForecast(
             forecast_date=date.strftime('%Y-%m-%d'),
-            bag_type_id=1,
+            bag_type_id=bag_types["10kg"],
             quantity=quantity
         )
         db.session.add(forecast)
 
     db.session.commit()
 
-def get_forecast_record(date, bag):
+def get_forecast_record(date, bag_type):
+    bag = BagType.query.filter_by(type=bag_type).first().id if bag_type in ["1kg", "10kg"] else None
     if date is not None and bag is not None:
         return DailyForecast.query.filter_by(forecast_date=date, bag_type_id=bag).first()
