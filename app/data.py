@@ -1,84 +1,96 @@
 import threading
 from datetime import datetime, timedelta
-import pandas as pd
 
 from sqlalchemy import func
-import warnings
-from statsmodels.tools.sm_exceptions import ValueWarning
-
-warnings.filterwarnings("ignore", category=FutureWarning)
-warnings.filterwarnings("ignore", category=ValueWarning)
-warnings.filterwarnings("ignore", category=UserWarning)
-
-from forecasting import create_monthly_forecast, is_new_month
-from machine.comms import start_1kg, start_10kg
-
-from .models import BagType, DailyForecast, DailyProduction
+from .models import BagType, DailyProduction, DailyForecast
 from . import db
+from forecasting import create_monthly_forecast, is_new_month
 
-lock = threading.Lock()
+class State:
+    _instance = None
+    _lock = threading.Lock()
 
-IS_BUSY = "1kg"
+    def __new__(cls, *args, **kwargs):
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = super(State, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
 
-DATA = {
-    "1kg": {"size": 1, "count": 0, "quota": 0},
-    "10kg": {"size": 10, "count": 0, "quota": 0},
-}
+    def __init__(self):
+        if not hasattr(self, 'initialized'):  # Ensure initialization happens only once
+            self.IS_BUSY = "1kg"
+            self.DATA = {
+                "1kg": {"size": 1, "count": 0, "quota": 0},
+                "10kg": {"size": 10, "count": 0, "quota": 0},
+            }
+            self.WEEKLY_LOG = {}
+            self.TODAY = datetime.today()
+            self.initialized = True  # Mark as initialized
 
-WEEKLY_LOG = {}
-TODAY = datetime.today()
+    def initialize_data(self):
+        self.IS_BUSY = False
+        if is_new_month():
+            data = get_production_record()
+            forecast_1kg, forecast_10kg = create_monthly_forecast(data)
+            create_forecast_record(forecast_1kg, forecast_10kg)
 
-def initialize_data():
-    global DATA, IS_BUSY, WEEKLY_LOG, TODAY
-    IS_BUSY = False
+        last_daily_production_date = DailyProduction.query.order_by(DailyProduction.production_date.desc()).first().production_date
+        create_production_record(self.TODAY, last_daily_production_date)
+
+        start_of_week = self.TODAY - timedelta(days=self.TODAY.weekday())  # Monday of current week
+        end_of_week = start_of_week + timedelta(days=6)  # Sunday of current week
+
+        weekly_data = DailyProduction.query.filter(DailyProduction.production_date.between(start_of_week.strftime("%Y-%m-%d"), end_of_week.strftime("%Y-%m-%d"))).all()
+        for entry in weekly_data:
+            if entry.production_date not in self.WEEKLY_LOG:
+                self.WEEKLY_LOG[entry.production_date] = {"bag_1kg": 0, "bag_10kg": 0}
+
+            if entry.bag_type_id == 1:
+                self.WEEKLY_LOG[entry.production_date]["bag_1kg"] = entry.quantity
+            else:
+                self.WEEKLY_LOG[entry.production_date]["bag_10kg"] = entry.quantity
+
+        forecasted_data_1kg_entry = get_forecast_record(self.TODAY.strftime("%Y-%m-%d"), bag=0)
+        forecasted_data_10kg_entry = get_forecast_record(self.TODAY.strftime("%Y-%m-%d"), bag=1)
+        forecasted_data_1kg = 1 if forecasted_data_1kg_entry.quantity == 0 else forecasted_data_1kg_entry.quantity
+        forecasted_data_10kg = 1 if forecasted_data_10kg_entry.quantity == 0 else forecasted_data_10kg_entry.quantity
+
+        today_data = self.WEEKLY_LOG[self.TODAY.strftime("%Y-%m-%d")]
+        self.DATA = {
+            "1kg": {"size": 1, "count": today_data['bag_1kg'], "quota": int(forecasted_data_1kg)},
+            "10kg": {"size": 10, "count": today_data['bag_10kg'], "quota": int(forecasted_data_10kg)},
+        }
+
+        self.auto_start()
+        print("Global variables initialized successfully.")
+
+    def start(self, bag):
+        with State._lock:
+            self.IS_BUSY = bag if bag in ["1kg", "10kg"] else False
+        return True
     
-    if is_new_month():
-        data = get_production_record()
-        forecast_1kg, forecast_10kg = create_monthly_forecast(data)
-        print(forecast_1kg)
-        create_forecast_record(forecast_1kg, forecast_10kg)
+    def get_is_busy(self):
+        with State._lock:
+            return self.IS_BUSY
 
-    # there might be days without any production
-    last_daily_production_date = DailyProduction.query.order_by(DailyProduction.production_date.desc()).first().production_date
-    create_production_record(TODAY, last_daily_production_date)
-
-    # fetch weekly log data
-    start_of_week = TODAY - timedelta(days=TODAY.weekday())  # Monday of current week
-    end_of_week = start_of_week + timedelta(days=6)  # Sunday of current week
-
-    weekly_data = DailyProduction.query.filter(DailyProduction.production_date.between(start_of_week.strftime("%Y-%m-%d"), end_of_week.strftime("%Y-%m-%d"))).all()
-    for entry in weekly_data:
-        if entry.production_date not in WEEKLY_LOG:
-            WEEKLY_LOG[entry.production_date] = {"bag_1kg": 0, "bag_10kg": 0}
-
-        if entry.bag_type_id == 1:
-            WEEKLY_LOG[entry.production_date]["bag_1kg"] = entry.quantity
+    def auto_start(self):
+        if self.DATA["1kg"]["count"] < self.DATA["1kg"]["quota"]:
+            self.start("1kg")
+        elif self.DATA["10kg"]["count"] < self.DATA["10kg"]["quota"]:
+            self.start("10kg")
         else:
-            WEEKLY_LOG[entry.production_date]["bag_10kg"] = entry.quantity
+            self.start(None)
 
-    # fetch forecasted data for and add as quota
-    forecasted_data_1kg_entry = get_forecast_record(TODAY.strftime("%Y-%m-%d"), bag=0)
-    forecasted_data_10kg_entry = get_forecast_record(TODAY.strftime("%Y-%m-%d"), bag=1)
-    print(forecasted_data_1kg_entry.quantity, forecasted_data_10kg_entry.quantity)
-    forecasted_data_1kg = 1 if forecasted_data_1kg_entry.quantity == 0 else forecasted_data_1kg_entry.quantity
-    forecasted_data_10kg = 1 if forecasted_data_10kg_entry.quantity == 0 else forecasted_data_10kg_entry.quantity
+    def update_production_record(self, size, quantity):
+        global TODAY, DATA, WEEKLY_LOG
+        self.DATA[size]["count"] += quantity
+        # DailyProduction.query.filter_by(production_date=TODAY.strftime("%Y-%m-%d"), bag_type_id=BagType.query.filter_by(type=bag_type).first().id).update({"quantity": DATA[bag_type]["count"]})
+        bag_type = BagType.query.filter_by(type=size).first().id
+        record = DailyProduction.query.filter_by(production_date=self.TODAY.strftime("%Y-%m-%d"), bag_type_id=bag_type).first()
+        record.quantity = self.DATA[size]["count"]
+        db.session.commit()
 
-    today_data = WEEKLY_LOG[TODAY.strftime("%Y-%m-%d")]
-    DATA = {
-        "1kg": {"size": 1, "count": today_data['bag_1kg'], "quota": int(forecasted_data_1kg)},
-        "10kg": {"size": 10, "count": today_data['bag_10kg'], "quota": int(forecasted_data_10kg)},
-    }
-
-    if DATA["1kg"]["count"] < DATA["1kg"]["quota"]:
-        IS_BUSY = "1kg"
-        start_1kg()
-    elif DATA["10kg"]["count"] < DATA["10kg"]["quota"]:
-        IS_BUSY = "10kg"
-        start_10kg()
-    else:
-        IS_BUSY = False
-
-    print("Global variables initialized successfully.")
+# app/state.py (continued)
 
 def get_production_record(start_date=None, end_date=None):
     query = db.session.query(
@@ -112,15 +124,6 @@ def create_production_record(date, start_date=None):
                 record = DailyProduction(production_date=current_date.strftime("%Y-%m-%d"), bag_type_id=bag_type, quantity=0)
                 db.session.add(record)
 
-    db.session.commit()
-
-def update_production_record(size, quantity):
-    global TODAY, DATA, WEEKLY_LOG
-    DATA[size]["count"] += quantity
-    # DailyProduction.query.filter_by(production_date=TODAY.strftime("%Y-%m-%d"), bag_type_id=BagType.query.filter_by(type=bag_type).first().id).update({"quantity": DATA[bag_type]["count"]})
-    bag_type = BagType.query.filter_by(type=size).first().id
-    record = DailyProduction.query.filter_by(production_date=TODAY.strftime("%Y-%m-%d"), bag_type_id=bag_type).first()
-    record.quantity = DATA[size]["count"]
     db.session.commit()
 
 def create_forecast_record(data_1kg, data_10kg):

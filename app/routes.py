@@ -1,4 +1,6 @@
-from flask import render_template, Blueprint, redirect, url_for, session, flash, request, jsonify, send_file
+import time
+import threading
+from flask import render_template, Blueprint, redirect, url_for, session, flash, request, jsonify, send_file, Response
 from datetime import datetime, timedelta
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
@@ -10,10 +12,11 @@ from app.file_generation import MyPDF
 from app.utils import get_first_day_of_iso_week, get_readable_week_of_month
 
 from .models import BagType, DailyProduction, Employee
-from .data import IS_BUSY, DATA, WEEKLY_LOG, TODAY, lock, update_production_record
+from .data import State
 
 # Blueprint setup
 main = Blueprint('main', __name__)
+notification_flag = False
 
 # Flask-WTF Login Form
 class LoginForm(FlaskForm):
@@ -63,11 +66,13 @@ def index():
 
 @main.route('/status', methods=['GET'])
 def status():
+    current_status = State().get_is_busy()
+
     if 'username' not in session:
         flash('You need to log in to access the dashboard.', 'warning')
         return redirect(url_for('main.login'))
 
-    if IS_BUSY != False:
+    if current_status != False:
         return render_template('status.html',
                                color="#00FF00",
                                message="RUNNING")
@@ -78,37 +83,42 @@ def status():
 
 @main.route('/status/<size>', methods=['PUT'])
 def put_status(size):
-    global IS_BUSY
+    current_status = State().get_is_busy()
+    DATA = State().DATA
+
     if 'username' not in session:
         flash('You need to log in to access the dashboard.', 'warning')
         return redirect(url_for('main.login'))
     
     if request.method == 'PUT':
         if size == "stop":
-            IS_BUSY = False
-            return jsonify({"status": "success", "message": "Status updated successfully.", "value": IS_BUSY})
+            res = State().start(None)
+            return jsonify({"status": "success", "message": "Status updated successfully.", "value": current_status})
         
         if size in DATA:
-            IS_BUSY = size
-            return jsonify({"status": "success", "message": "Status updated successfully.", "value": IS_BUSY})
+            res = State().start(size)
+            return jsonify({"status": "success", "message": "Status updated successfully.", "value": current_status})
         return jsonify({"status": "error", "message": "Invalid size."})
 
 @main.route('/count/<size>', methods=['PUT'])
 def count(size):
-    global DATA, IS_BUSY
     if request.method == 'PUT':
-        update_production_record(size, 1)
+        State().update_production_record(size, 1)
         if DATA[size]["count"] >= DATA[size]["quota"]:
-            IS_BUSY = False
+            # auto_start()
+            pass
         return jsonify({"status": "success", "message": "Count updated successfully."})
     
 @main.route('/quota/<size>', methods=['GET'])
 def get_quota(size):
+    current_status = State().get_is_busy()
+    DATA = State().DATA
+
     if 'username' not in session:
         flash('You need to log in to access the dashboard.', 'warning')
         return redirect(url_for('main.login'))
     
-    if size not in DATA:
+    if size not in State().DATA:
         return jsonify({"status": "error", "message": "Invalid size."}), 400
     
     msg = f"{str(DATA[size]['count'])}/{str(DATA[size]['quota'])} bags"
@@ -122,7 +132,7 @@ def get_quota(size):
     edit_button = f"""<button class="control-button" id="edit-{size}" tooltip="Decrement">
 <span class="material-symbols-outlined" id="icon">edit_square</span>
 </button>"""
-    button = stop_button if IS_BUSY == size else run_button
+    button = stop_button if current_status == size else run_button
     return render_template('control.html',
                            title=f"{str(DATA[size]['size'])} kg bags",
                            subtitle="Packing Progress Report",
@@ -159,17 +169,36 @@ def post_quota(size, count):
                     "message": "Quota updated successfully.",
                     "value": DATA[size]})
 
+@main.route('/notify', methods=['GET'])
+def notify():
+    def event_stream():
+        while True:
+            global notification_flag
+            if notification_flag:
+                notification_flag = False
+                yield 'data: Packing finished!\n\n'
+            time.sleep(1)
+    return Response(event_stream(), mimetype="text/event-stream")
+
+@main.route("/finish", methods=['POST'])
+def finish_notify():
+    global notification_flag
+    if request.method == 'POST':
+        notification_flag = True
+        return jsonify({"status": "success", "message": "Notification sent."})
+    return jsonify({"status": "error", "message": "Invalid request."}), 400
+
 @main.route('/log', methods=['GET'])
 def log():
     if 'username' not in session:
         flash('You need to log in to access the dashboard.', 'warning')
         return redirect(url_for('main.login'))
 
-    start_of_week = TODAY - timedelta(days=TODAY.weekday())  # Monday of current week
+    start_of_week = State().TODAY - timedelta(days=State().TODAY.weekday())  # Monday of current week
     end_of_week = start_of_week + timedelta(days=6)  # Sunday of current week
 
     return jsonify({
-        "data": WEEKLY_LOG,
+        "data": State().WEEKLY_LOG,
         "start_date": start_of_week.strftime("%b. %d, %Y"),
         "end_date": end_of_week.strftime("%b. %d, %Y")
     })
