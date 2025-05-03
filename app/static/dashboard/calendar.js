@@ -2,7 +2,7 @@
 flatpickr("#datepicker", {
     mode: "range",         // Enables range selection (start and end dates)
     dateFormat: "Y-m-d",   // Format for the selected date
-    inline: true,          // Displays the calendar inline (no dropdown)
+    inline: false,          // Displays the calendar inline (no dropdown)
     showMonths: 1,         // Show only 1 month
 });
 
@@ -51,27 +51,43 @@ function plotGraph(data) {
             datasets: [{
                 label: 'Data for Selected Range',
                 data: data.data,
-                borderColor: 'rgba(75, 192, 192, 1)',
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgb(255, 80, 0)',
+                backgroundColor: 'rgba(255, 80, 0, 0.2)',
                 fill: true,
             }]
         },
         options: {
+            color: 'black',
             scales: {
                 x: {
                     title: {
                         display: true,
-                        text: 'Date'
+                        text: 'Date',
+                        color: 'black'
+                    },
+                    ticks: {
+                        color: 'black'
                     }
                 },
                 y: {
                     title: {
                         display: true,
-                        text: 'Value'
+                        text: 'Value',
+                        color: 'black'
+                    },
+                    ticks: {
+                        color: 'black'
                     },
                     min: 0
                 }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: 'black'
+                    }
+                }
             }
-        }
+        }        
     });
 }
