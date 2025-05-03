@@ -78,7 +78,6 @@ class State:
 
         forecasted_data_1kg_entry = get_forecast_record(self.TODAY.strftime("%Y-%m-%d"), bag_type="1kg")
         forecasted_data_10kg_entry = get_forecast_record(self.TODAY.strftime("%Y-%m-%d"), bag_type="10kg")
-        print(f"Forecasted data for 1kg: {forecasted_data_1kg_entry.quantity}, 10kg: {forecasted_data_10kg_entry.quantity}")
         forecasted_data_1kg = 1 if forecasted_data_1kg_entry.quantity == 0 else forecasted_data_1kg_entry.quantity
         final_data_1kg = forecasted_data_1kg if forecasted_data_1kg_entry.change is None else forecasted_data_1kg_entry.change
         forecasted_data_10kg = 1 if forecasted_data_10kg_entry.quantity == 0 else forecasted_data_10kg_entry.quantity
