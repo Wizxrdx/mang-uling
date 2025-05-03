@@ -65,6 +65,10 @@ class Machine:
             print("System already running.")
 
     def stop_pressed(self):
+        if self.system is None:
+            print("No system selected.")
+            return
+        
         print("STOP button pressed!")
         GPIO.output(self.VIBRATOR1_PIN, GPIO.LOW)
         GPIO.output(self.VIBRATOR2_PIN, GPIO.LOW)
