@@ -53,6 +53,7 @@ class State:
     def initialize_data(self):
         self.IS_BUSY = False
         if is_new_month():
+            print("New month detected. Generating new forecast data.")
             data = get_production_record()
             forecast_1kg, forecast_10kg = create_monthly_forecast(data)
             create_forecast_record(forecast_1kg, forecast_10kg)
