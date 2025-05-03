@@ -1,10 +1,13 @@
-<div class="indicator-container" style="background-color: {{ color | safe }};" id="status">
+<div class="indicator-container" style="background-color: #FDE3D2;" id="status">
     <div class="indicator-header">
         <h2>Machine Status</h2>
     </div>
-    <div class="indicator-body">
-        <p>{{ message }}</p>
-    </div>
-    <div class="indicator-footer">
+    <div class="indicator-content">
+        <div style="background-color: {{ background_color_running | safe }}; color: {{ color_running | safe }};">
+            <p>RUNNING</p>
+        </div>
+        <div style="background-color: {{ background_color_idle | safe }}; color: {{ color_idle | safe }};">
+            <p>IDLE</p>
+        </div>
     </div>
 </div>

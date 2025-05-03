@@ -17,8 +17,8 @@
 </head>
 <body>
     <nav>
+        <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Mang Uling" class="mini-logo">
         <header class="nav-header">
-            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Mang Uling" class="mini-logo">
             Dashboard
         </header>
         
@@ -60,7 +60,7 @@
             <div class="indicator-container" id="status">
                 <!-- status div -->
             </div>
-            <div style="flex: 7 7 auto; gap: 0.2rem; display: grid;">
+            <div class="controller-container">
                 <div class="indicator-container" id="1kg">
                     <!-- count div -->
                 </div>

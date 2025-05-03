@@ -9,10 +9,3 @@
     text-align: center;
     margin: 1rem;
 }
-
-.mini-logo {
-    height: 2rem;
-    width: 2rem;
-    mix-blend-mode: multiply;
-    border-radius: 0.5rem;
-}

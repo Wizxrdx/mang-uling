@@ -80,13 +80,19 @@ def status():
         return redirect(url_for('main.login'))
 
     if current_status != False:
+        # Running
         return render_template('status.html',
-                               color="#00FF00",
-                               message="RUNNING")
+                               background_color_running="#00FF00",
+                               color_running="#000000",
+                               background_color_idle="#d3d3d3",
+                               color_idle="#b0b0b0")
     else:
+        # Idle
         return render_template('status.html',
-                               color="#FFFF00",
-                               message="IDLE")
+                               background_color_running="#d3d3d3",
+                               color_running="#b0b0b0",
+                               background_color_idle="#FFFF00",
+                               color_idle="#000000")
 
 @main.route('/status/<size>', methods=['PUT'])
 def put_status(size):
@@ -133,10 +139,10 @@ def get_quota(size):
     msg = f"{str(DATA[size]['count'])}/{str(DATA[size]['quota'])} bags"
     prog = (DATA[size]["count"] / DATA[size]["quota"]) * 100
     run_button = f"""<button class="control-button" id="run-{size}" tooltip="Run the process">
-<span class="material-symbols-outlined" id="icon">manufacturing</span>
+<span class="material-symbols-outlined" id="icon">play_arrow</span>
 </button>"""
     stop_button = f"""<button class="control-button" id="stop-{size}" tooltip="Stop the process">
-<span class="material-symbols-outlined" id="icon">&#xe5c9;</span>
+<span class="material-symbols-outlined" id="icon">stop</span>
 </button>"""
     edit_button = f"""<button class="control-button" id="edit-{size}" tooltip="Decrement">
 <span class="material-symbols-outlined" id="icon">edit_square</span>

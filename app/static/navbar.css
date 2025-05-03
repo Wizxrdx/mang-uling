@@ -2,6 +2,13 @@
 /* Navbar Styles */
 /* ========================= */
 
+.mini-logo {
+    height: 2rem;
+    width: 2rem;
+    mix-blend-mode: multiply;
+    border-radius: 0.5rem;
+}
+
 button {
     margin: 0;
     padding: 0;
@@ -12,7 +19,7 @@ nav {
     overflow: hidden;
     position: sticky;
     top: 0;
-    background-color: #FF5C00;
+    background-color: #FF7700;
     color: white;
     min-width: max-content;
     display: flex;
@@ -30,7 +37,6 @@ nav {
 .nav-header {
     display: flex;
     align-items: center;
-    gap: 0.7rem;
 }
 
 nav ul {
@@ -57,7 +63,7 @@ nav ul li a:hover {
         flex-direction: row;
         align-items: center;
         padding: 0 0.4rem;
-        font-size: x-large;
+        font-size: medium;
     }
 
     #burger {
@@ -130,7 +136,7 @@ nav ul li a:hover {
         left: 110%;
         text-align: right;
         height: 50%;
-        background-color: #FF5C00;
+        background-color: #FF7700;
         transition: left 0.3s ease-in-out;
     }
 
@@ -159,6 +165,14 @@ nav ul li a:hover {
 
 /* Tablets (~769px to ~1024px) */
 @media (min-width: 769px) and (max-width: 1024px) {
+    .mini-logo {
+        margin-right: 1rem;
+    }
+    
+    .nav-header {
+        width: 100%;
+    }
+    
     nav {
         flex-direction: row;
         justify-content: space-between;
@@ -188,6 +202,14 @@ nav ul li a:hover {
 
 /* Laptops & Larger (1025px and above) */
 @media (min-width: 1025px) {
+    .mini-logo {
+        margin-right: 1rem;
+    }
+
+    .nav-header {
+        width: 100%;
+    }
+
     nav {
         flex-direction: row;
         justify-content: space-between;
