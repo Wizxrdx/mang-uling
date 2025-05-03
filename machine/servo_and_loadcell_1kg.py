@@ -10,7 +10,6 @@ from gpiozero import AngularServo, Device
 from gpiozero.pins.pigpio import PiGPIOFactory
 from time import sleep
 
-GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 GPIO.cleanup()
 
@@ -33,22 +32,21 @@ hx2.reset()
 hx2.tare()
 
 display.lcd_display_string("Scale Ready", 1)
-time.sleep(1)
-display.lcd_clear()
+display.lcd_display_string("Press START", 2)
 
 Device.pin_factory = PiGPIOFactory()
 
 # Initialize Servos
 servo = AngularServo(6,  min_pulse_width=0.0006, max_pulse_width=0.0023) #bottom left
-servo1 = AngularServo(12, min_pulse_width=0.0006, max_pulse_width=0.0023)
-servo2 = AngularServo(13, min_pulse_width=0.0006, max_pulse_width=0.0023)
-servo3 = AngularServo(18, min_pulse_width=0.0006, max_pulse_width=0.0023)
+servo1 = AngularServo(12, min_pulse_width=0.0006, max_pulse_width=0.0023) #bottom right
+servo2 = AngularServo(18, min_pulse_width=0.0006, max_pulse_width=0.0023) # top left
+servo3 = AngularServo(13, min_pulse_width=0.0006, max_pulse_width=0.0023) # top right
 
 # Default positions
 servo.angle = -40
 servo1.angle = 10
-servo2.angle = -7
-servo3.angle = 0
+servo2.angle = 45
+servo3.angle = -30
 sleep(1)
 
 # State flags
@@ -73,23 +71,23 @@ def activate_top_servo_open():
 def activate_top_servo_close():
     state["top_gate_closed"] = True
     state["package_ready"] = True
-    servo2.angle = 0
-    servo3.angle = 0
+    servo2.angle = 45
+    servo3.angle = -30
     sleep(2)
     if not state["bottom_gate_open"]:
         threading.Thread(target=activate_bottomservo_for_1kg).start()
 
-'''def activate_bottomservo_for_1kg():
+def activate_bottomservo_for_1kg():
     servo.angle = 10
     servo1.angle = -50
-    state["bottom_gate_open"] = True'''
+    state["bottom_gate_open"] = True
 
-def activate_bottomservo_for_1kg():
+'''def activate_bottomservo_for_1kg():
     for _ in range(10):
         servo.angle = 10
         servo1.angle = -50
         time.sleep(0.1)  # Keep reapplying angle
-    state["bottom_gate_open"] = True
+    state["bottom_gate_open"] = True'''
 
 def deactivate_bottomservo():
     servo.angle = -50
@@ -103,14 +101,48 @@ def reset_system():
     state["top_gate_closed"] = False
     state["waiting_for_reset"] = False
     state["package_ready"] = False
-    threading.Thread(target=activate_top_servo_open).start()
-    
+    #threading.Thread(target=activate_top_servo_open).start()
+
+def stop_system():
+    global state
+
+    # First, close top gate if open
+    if state["top_gate_open"]:
+        print("[DEBUG] Closing top gate due to STOP")
+        servo2.angle = 0
+        servo3.angle = 0
+        state["top_gate_open"] = False
+        state["top_gate_closed"] = True
+        time.sleep(1)  # Let the servos finish moving
+
+    # Clear LCD and show STOP message
+    display.lcd_clear()
+    time.sleep(0.1)
+    display.lcd_display_string("System Stopped", 1)
+    display.lcd_display_string("Press START", 2)
+
+def initialize_system():
+    hx1.reset()
+    hx2.reset()
+    hx1.tare()
+    hx2.tare()
+    display.lcd_clear()
+    time.sleep(0.1)
+    display.lcd_display_string("System Starting...", 1)
+    time.sleep(1)
+    display.lcd_clear()
+    display.lcd_display_string("System Ready", 1)
+    time.sleep(1)
+    display.lcd_clear()
+
 def finish_1kg():
     requests.put("http://127.0.0.1:5000/count/1kg")
 
 # --- Main control function ---
 def run_system():
     global should_run
+    start_time = time.time()  # Record system start time
+
     try:
         while should_run:
             weight1 = hx1.get_weight(10) / 1000
@@ -124,18 +156,20 @@ def run_system():
             display.lcd_display_string(f"{rounded_weight:>6.2f} kg", 2)
             print(f"[DEBUG] Weight: {rounded_weight:.2f}, States: {state}")
 
-            if not state["top_gate_open"] and rounded_weight <= 0.03:
-                threading.Thread(target=activate_top_servo_open).start()
+            # Wait at least 2 seconds before allowing servo actions
+            if time.time() - start_time > 2:
+                if not state["top_gate_open"] and rounded_weight <= 0.03:
+                    threading.Thread(target=activate_top_servo_open).start()
 
-            if state["top_gate_open"] and not state["top_gate_closed"] and 1.00 <= rounded_weight <= 1.20:
-                threading.Thread(target=activate_top_servo_close).start()
+                if state["top_gate_open"] and not state["top_gate_closed"] and 0.50 <= rounded_weight <= 1.20:
+                    threading.Thread(target=activate_top_servo_close).start()
 
-            if state["bottom_gate_open"] and rounded_weight <= 0.10:
-                threading.Thread(target=deactivate_bottomservo).start()
-                reset_system()
+                if state["bottom_gate_open"] and rounded_weight <= 0.10:
+                    threading.Thread(target=deactivate_bottomservo).start()
+                    reset_system()
 
+            finish_1kg()
             time.sleep(0.2)
-            finish_10kg()
 
     except KeyboardInterrupt:
         display.lcd_clear()
