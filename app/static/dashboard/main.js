@@ -22,15 +22,6 @@ function updateTable() {
     });
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-    const navToggle = document.querySelector(".nav-toggle");
-    const navMenu = document.querySelector("nav ul");
-
-    navToggle.addEventListener("click", function () {
-        navMenu.classList.toggle("show");
-    });
-});
-
 $(document).ready(function() {
     replaceWithContent("#status", "/status");
     replaceWithContent("#1kg", "/quota/1kg");
