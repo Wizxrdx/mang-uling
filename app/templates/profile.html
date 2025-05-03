@@ -1,0 +1,27 @@
+<div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center">
+            <div class="modal-body">
+                <!-- Profile Info -->
+                <h5 class="modal-title" id="profileModalLabel">Welcome, {{ name | safe }}!</h5>
+                
+                <hr>
+
+                <!-- Change Name Input -->
+                <div class="mb-3">
+                    <label for="newName" class="form-label">Change Name</label>
+                    <input type="text" class="form-control" id="newName" placeholder="Enter new name">
+                </div>
+
+                <!-- Change Password Input -->
+                <div class="mb-3">
+                    <label for="newPassword" class="form-label">Change Password</label>
+                    <input type="password" class="form-control" id="newPassword" placeholder="Enter new password">
+                </div>
+
+                <!-- Save Button -->
+                <button id="saveChanges" class="btn btn-success">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>

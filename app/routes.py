@@ -71,6 +71,15 @@ def date_range():
 
     return render_template('date_range.html')
 
+@main.route('/profile', methods=['GET'])
+def profile():
+    if 'username' not in session:
+        flash('You need to log in to access the dashboard.', 'warning')
+        return redirect(url_for('main.login'))
+    
+    return render_template('profile.html',
+                           name=session.get('name', "Guest"))
+
 @main.route('/status', methods=['GET'])
 def status():
     current_status = State().get_is_busy()
