@@ -60,9 +60,16 @@ def index():
 
     return render_template(
         'index.html',
-        user_name=name,
-        current_date=datetime.now().strftime("%Y-%m-%d")
+        user_name=name
     )
+
+@main.route('/date-range')
+def date_range():
+    if 'username' not in session:
+        flash('You need to log in to access the dashboard.', 'warning')
+        return redirect(url_for('main.login'))
+
+    return render_template('date_range.html')
 
 @main.route('/status', methods=['GET'])
 def status():
