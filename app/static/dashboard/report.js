@@ -28,15 +28,6 @@ document.addEventListener("DOMContentLoaded", function () {
             // Open PDF in a new tab
             window.open(pdfUrl, "_blank");
 
-            // Download if checkbox is checked
-            if (downloadCheckbox.checked) {
-                const a = document.createElement("a");
-                a.href = pdfUrl;
-                a.download = "log_report.pdf";
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            }
         })
         .catch(error => console.error("Error:", error));
     });
