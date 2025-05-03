@@ -37,12 +37,14 @@ class Machine:
         threading.Thread(target=self.listen_for_buttons, daemon=True).start()
 
     def change_system(self, system):
-        self.stop_pressed()
+        if self.system is not None:
+            self.stop_pressed()
         self.system = system
         self.system_thread = None
 
     def reset_system(self):
-        self.stop_pressed()
+        if self.system is not None:
+            self.stop_pressed()
         self.system = None
         self.system_thread = None
 
