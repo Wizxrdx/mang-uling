@@ -167,8 +167,8 @@ def run_system():
                 if state["bottom_gate_open"] and rounded_weight <= 0.10:
                     threading.Thread(target=deactivate_bottomservo).start()
                     reset_system()
+                    finish_1kg()
 
-            finish_1kg()
             time.sleep(0.2)
 
     except KeyboardInterrupt:
