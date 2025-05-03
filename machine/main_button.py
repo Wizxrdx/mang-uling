@@ -41,6 +41,11 @@ class Machine:
         self.system = system
         self.system_thread = None
 
+    def reset_system(self):
+        self.stop_pressed()
+        self.system = None
+        self.system_thread = None
+
     def start_pressed(self):
         if self.system is None:
             print("No system selected.")

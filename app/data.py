@@ -2,6 +2,8 @@ import threading
 from datetime import datetime, timedelta
 
 import warnings
+
+from machine.comms import reset_system, start_10kg, start_1kg
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -45,7 +47,7 @@ class State:
         return self.NOTIFY
     
     def get_notification(self):
-        with State._lock:
+        with self._lock:
             msg = self.NOTIFY_MSG
             self.clear_notification()
             return msg
@@ -92,12 +94,20 @@ class State:
         print("Global variables initialized successfully.")
 
     def start(self, bag):
-        with State._lock:
+        with self._lock:
             self.IS_BUSY = bag if bag in ["1kg", "10kg"] else False
+            if self.IS_BUSY == "1kg":
+                start_1kg()
+            elif self.IS_BUSY == "10kg":
+                start_10kg()
+            else:
+                self.IS_BUSY = False
+                reset_system()
+
         return True
     
     def get_is_busy(self):
-        with State._lock:
+        with self._lock:
             return self.IS_BUSY
 
     def auto_start(self):
