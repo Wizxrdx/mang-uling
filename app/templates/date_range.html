@@ -19,8 +19,8 @@
 </head>
 <body>
     <nav>
+        <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Mang Uling" class="mini-logo">
         <header class="nav-header">
-            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Mang Uling" class="mini-logo">
             Dashboard
         </header>
         
@@ -28,11 +28,13 @@
             <span class="material-symbols-outlined" id="burger">menu</span>
         </button>
         <ul>
-            <li><br></li>
+            <li>
+                <br>
+            </li>
             <li>
                 <a href="/">
                     <span class="material-symbols-outlined">
-                        dashboard
+                        home
                     </span>
                 </a>
             </li>
@@ -49,7 +51,7 @@
             <li><a href="#">
                 <span class="material-symbols-outlined">
                     account_circle
-                </span>
+                    </span>
             </a></li>
             <li><a href="/logout">Logout</a></li>
         </ul>
