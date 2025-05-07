@@ -305,3 +305,75 @@ def generate_pdf():
     pdf_output.seek(0)
 
     return send_file(pdf_output, mimetype="application/pdf", as_attachment=False, download_name="log_report.pdf")
+
+@main.route('/date-range-data', methods=['POST'])
+def date_range_data():
+    try:
+        if 'username' not in session:
+            return jsonify({"error": "Unauthorized"}), 401
+        
+        data = request.get_json()
+        if not data or 'start_date' not in data or 'end_date' not in data:
+            return jsonify({"error": "Missing date range parameters"}), 400
+
+        start_date = datetime.strptime(data.get('start_date'), '%Y-%m-%d')
+        end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d')
+        
+        # Query daily production data for the selected date range
+        daily_production = DailyProduction.query \
+            .join(BagType) \
+            .filter(
+                DailyProduction.production_date.between(
+                    start_date.strftime('%Y-%m-%d'),
+                    end_date.strftime('%Y-%m-%d')
+                )
+            ) \
+            .all()
+        
+        if not daily_production:
+            return jsonify({
+                'labels': [],
+                'datasets': []
+            })
+        
+        # Process the data for chart visualization
+        chart_data = {
+            'labels': [],
+            'datasets': []
+        }
+        
+        # Get unique bag types
+        bag_types = set(dp.bag_type.type for dp in daily_production)
+        
+        # Initialize datasets for each bag type
+        for bag_type in bag_types:
+            chart_data['datasets'].append({
+                'label': f'{bag_type} kg bags',
+                'data': [],
+                'borderColor': f'rgb({hash(bag_type) % 255}, {hash(bag_type) % 255}, {hash(bag_type) % 255})',
+                'fill': False
+            })
+        
+        # Group data by date
+        date_groups = {}
+        for dp in daily_production:
+            date_str = dp.production_date  # Already a string in YYYY-MM-DD format
+            if date_str not in date_groups:
+                date_groups[date_str] = {}
+            if dp.bag_type.type not in date_groups[date_str]:
+                date_groups[date_str][dp.bag_type.type] = 0
+            date_groups[date_str][dp.bag_type.type] += dp.quantity
+        
+        # Sort dates and populate chart data
+        sorted_dates = sorted(date_groups.keys())
+        chart_data['labels'] = sorted_dates
+        
+        for date in sorted_dates:
+            for i, bag_type in enumerate(bag_types):
+                count = date_groups[date].get(bag_type, 0)
+                chart_data['datasets'][i]['data'].append(count)
+        
+        return jsonify(chart_data)
+    except Exception as e:
+        print(f"Error in date_range_data: {str(e)}")  # Add logging
+        return jsonify({"error": str(e)}), 500
