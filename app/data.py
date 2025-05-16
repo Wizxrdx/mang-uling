@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 import warnings
 
-from machine.comms import reset_system, start_10kg, start_1kg
+# from machine.comms import reset_system, start_10kg, start_1kg
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -34,6 +34,15 @@ class State:
             self.NOTIFY = False
             self.NOTIFY_MSG = None
             self.initialized = True
+
+    def get_weekly_log(self):
+        with self._lock:
+            self.WEEKLY_LOG[self.TODAY.strftime("%Y-%m-%d")] = {
+                "bag_1kg": self.DATA["1kg"]["count"],
+                "bag_10kg": self.DATA["10kg"]["count"]
+            }
+
+            return self.WEEKLY_LOG
 
     def set_notification(self, msg):
         self.NOTIFY = True
@@ -96,12 +105,14 @@ class State:
         with self._lock:
             self.IS_BUSY = bag if bag in ["1kg", "10kg"] else False
             if self.IS_BUSY == "1kg":
-                start_1kg()
+                # start_1kg()
+                pass
             elif self.IS_BUSY == "10kg":
-                start_10kg()
+                # start_10kg()
+                pass
             else:
-                self.IS_BUSY = False
-                reset_system()
+                pass
+                # reset_system()
 
         return True
     

@@ -208,7 +208,7 @@ def log():
     end_of_week = start_of_week + timedelta(days=6)  # Sunday of current week
 
     return jsonify({
-        "data": State().WEEKLY_LOG,
+        "data": State().get_weekly_log(),
         "start_date": start_of_week.strftime("%b. %d, %Y"),
         "end_date": end_of_week.strftime("%b. %d, %Y")
     })
