@@ -20,8 +20,8 @@ class Machine:
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
 
-        self.start_button = Button(17, pull_up=True, bounce_time=0.05)
-        self.stop_button = Button(16, pull_up=True, bounce_time=0.05)
+        self.start_button = Button(16, pull_up=True, bounce_time=0.05)
+        self.stop_button = Button(17, pull_up=True, bounce_time=0.05)
 
         self.system_thread = None
 
