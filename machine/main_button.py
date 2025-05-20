@@ -20,14 +20,6 @@ class Machine:
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
 
-        self.VIBRATOR1_PIN = 4
-        self.VIBRATOR2_PIN = 26
-        GPIO.setup(self.VIBRATOR1_PIN, GPIO.OUT)
-        GPIO.setup(self.VIBRATOR2_PIN, GPIO.OUT)
-
-        GPIO.output(self.VIBRATOR1_PIN, GPIO.LOW)
-        GPIO.output(self.VIBRATOR2_PIN, GPIO.LOW)
-
         self.start_button = Button(17, pull_up=True, bounce_time=0.05)
         self.stop_button = Button(16, pull_up=True, bounce_time=0.05)
 
@@ -55,9 +47,8 @@ class Machine:
         
         if self.system_thread is None or not self.system_thread.is_alive():
             print("START button pressed!")
-            GPIO.output(self.VIBRATOR1_PIN, GPIO.HIGH)
-            GPIO.output(self.VIBRATOR2_PIN, GPIO.HIGH)
             self.system.should_run = True
+            self.system.initialize_system()
             print("Starting system thread...")
             self.system_thread = threading.Thread(target=self.system.run_system)
             self.system_thread.start()
@@ -70,9 +61,8 @@ class Machine:
             return
         
         print("STOP button pressed!")
-        GPIO.output(self.VIBRATOR1_PIN, GPIO.LOW)
-        GPIO.output(self.VIBRATOR2_PIN, GPIO.LOW)
         self.system.should_run = False
+        self.system.stop_system()
 
     def listen_for_buttons(self):
         self.start_button.when_pressed = self.start_pressed
