@@ -37,15 +37,6 @@ GPIO.setup(VIBRATOR2_PIN, GPIO.OUT)
 GPIO.output(VIBRATOR1_PIN, GPIO.LOW)
 GPIO.output(VIBRATOR2_PIN, GPIO.LOW)
 
-try:
-    arduino = serial.Serial('/dev/ttyACM0', 9600, timeout=2)
-    time.sleep(3)
-    print("[INFO] Arduino connected on /dev/ttyACM0 for 1kg")
-except serial.SerialException as e:
-    arduino = None
-    print(f"[ERROR] Arduino connection failed: {e}")
-
-
 # Initialize HX711 modules
 hx1 = HX711(23, 24)  # Load Cell 1
 hx2 = HX711(27, 22)  # Load Cell 2
@@ -97,6 +88,15 @@ state = {
 should_run = True
 
 # --- Servo control functions ---
+def get_arduino():
+    try:
+        arduino = serial.Serial('/dev/ttyACM0', 9600, timeout=2)
+        return arduino
+    except serial.SerialException as e:
+        arduino = None
+        print(f"[ERROR] Arduino connection failed: {e}")
+        return None
+
 def activate_top_servo_open():
     with servo_lock:
         if not state["top_gate_open"]:
@@ -185,26 +185,16 @@ def initialize_system():
     display.lcd_clear()
 
 def listen_for_sack():
-    if arduino:
-        while arduino.in_waiting:
-            line = arduino.readline().decode('utf-8').strip()
-            print(f"[SERIAL] {line}")
-            if "SACK_DETECTED" in line:
-                print("[INFO] Sack detected via ultrasonic.")
-                state["sack_detected"] = True  # Set flag
-                # Only open gate if package is ready
-                if state["package_ready"] and not state["bottom_gate_open"]:
-                    time.sleep(2)
-                    activate_bottomservo_for_1kg()
-    else:
-        print("[INFO] No Arduino connected for 1kg")
-        try:
-            arduino = serial.Serial('/dev/ttyACM0', 9600, timeout=2)
-            time.sleep(3)
-            print("[INFO] Arduino connected on /dev/ttyACM0 for 1kg")
-        except serial.SerialException as e:
-            arduino = None
-            print(f"[ERROR] Arduino connection failed: {e}")
+    while get_arduino().in_waiting:
+        line = get_arduino().readline().decode('utf-8').strip()
+        print(f"[SERIAL] {line}")
+        if "SACK_DETECTED" in line:
+            print("[INFO] Sack detected via ultrasonic.")
+            state["sack_detected"] = True  # Set flag
+            # Only open gate if package is ready
+            if state["package_ready"] and not state["bottom_gate_open"]:
+                time.sleep(2)
+                activate_bottomservo_for_1kg()
 
 def finish_1kg():
     requests.put("http://127.0.0.1:5000/count/1kg")
