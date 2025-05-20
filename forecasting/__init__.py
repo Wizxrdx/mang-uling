@@ -63,20 +63,20 @@ def get_parameters(data_1kg, data_10kg):
         print(f"Order for {current_month} created.")
 
         # save the order file
-        file_name = f"10kg_{current_month}.pkl" # should be 10_kg_2025-02.pkl
+        file_name = f"5kg_{current_month}.pkl" # should be 10_kg_2025-02.pkl
         print(f"Saving order to '{file_name}'...")
         with open(os.path.join(MODEL_PATH, file_name), "wb") as save_file:
             pickle.dump(parameters_10kg, save_file)
         print(f"File '{file_name}' created.")
     else:
+        file_name = f"1kg_{current_month}.pkl" # should be 10_kg_2025-02.pkl
         print(f"File '{file_name}' exists. loading the order...")
         # Load the existing 1kg order file
-        file_name = f"1kg_{current_month}.pkl" # should be 10_kg_2025-02.pkl
         with open(os.path.join(MODEL_PATH, file_name), "rb") as saved_file:
             parameters_1kg = pickle.load(saved_file)
 
         # Load the existing 10kg order file
-        file_name = f"10kg_{current_month}.pkl" # should be 10_kg_2025-02.pkl
+        file_name = f"5kg_{current_month}.pkl" # should be 10_kg_2025-02.pkl
         with open(os.path.join(MODEL_PATH, file_name), "rb") as saved_file:
             parameters_10kg = pickle.load(saved_file)
 
