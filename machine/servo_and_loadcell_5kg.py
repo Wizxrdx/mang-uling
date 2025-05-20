@@ -50,11 +50,12 @@ except serial.SerialException as e:
 hx1 = HX711(23, 24)  # Load Cell 1
 hx2 = HX711(27, 22)  # Load Cell 2
 
-reference_unit_1kg_hx1 = 6.709
-reference_unit_1kg_hx2 = 4.553
+reference_unit_5kg_hx1 = 8.966
+reference_unit_5kg_hx2 = 4.413
 
-hx1.set_reference_unit(reference_unit_1kg_hx1)
-hx2.set_reference_unit(reference_unit_1kg_hx2)
+
+hx1.set_reference_unit(reference_unit_5kg_hx1)
+hx2.set_reference_unit(reference_unit_5kg_hx2)
 
 hx1.reset()
 hx1.tare()
@@ -126,8 +127,8 @@ def activate_top_servo_close():
             state["package_ready"] = True
 
 def activate_bottomservo_for_1kg():
-    servo.angle = -80
-    servo1.angle = 30
+    servo.angle = -90
+    servo1.angle = 40
     state["bottom_gate_open"] = True
 
 def deactivate_bottomservo():
@@ -197,8 +198,8 @@ def listen_for_sack():
                     time.sleep(2)
                     activate_bottomservo_for_1kg()
 
-def finish_1kg():
-    requests.put("http://127.0.0.1:5000/count/1kg")
+def finish_5kg():
+    requests.put("http://127.0.0.1:5000/count/5kg")
 
 # --- Main control function ---
 def run_system():
@@ -227,11 +228,11 @@ def run_system():
                     threading.Thread(target=activate_top_servo_open).start()
 
                 # Close the top gate and open the bottom gate if weight is right and conditions met
-                if state["top_gate_open"] and not state["top_gate_closed"] and 0.85 <= rounded_weight <= 1.20:
+                if state["top_gate_open"] and not state["top_gate_closed"] and 4.85 <= rounded_weight <= 5.20:
                     threading.Thread(target=activate_top_servo_close).start()
 
                 # Debug for bottom gate opening
-                if state["top_gate_closed"] and not state["bottom_gate_open"] and rounded_weight <= 0.85:
+                if state["top_gate_closed"] and not state["bottom_gate_open"] and rounded_weight <= 4.85:
                     if state["sack_detected"]:  # Check if sack is detected
                         print("[INFO] Sack detected, opening bottom gate.")
                         threading.Thread(target=activate_bottomservo_for_1kg).start()
@@ -244,7 +245,7 @@ def run_system():
                 if state["bottom_gate_open"] and rounded_weight <= 0.05:
                     threading.Thread(target=deactivate_bottomservo).start()
                     reset_system()
-                    finish_1kg()
+                    finish_5kg()
 
             time.sleep(0.2)
 

@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 import warnings
 
-# from machine.comms import reset_system, start_5kg, start_1kg
+from machine.comms import reset_system, start_5kg, start_1kg
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -105,14 +105,14 @@ class State:
         with self._lock:
             self.IS_BUSY = bag if bag in ["1kg", "5kg"] else False
             if self.IS_BUSY == "1kg":
-                # start_1kg()
+                start_1kg()
                 pass
             elif self.IS_BUSY == "5kg":
-                # start_5kg()
+                start_5kg()
                 pass
             else:
                 pass
-                # reset_system()
+                reset_system()
 
         return True
     
