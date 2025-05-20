@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import time
+import requests
 import serial
 from hx711py.hx711 import HX711
 import RPi.GPIO as GPIO
