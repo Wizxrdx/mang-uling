@@ -183,6 +183,7 @@ def initialize_system():
     display.lcd_display_string(center_text("    System Ready"), 2)
     time.sleep(1)
     display.lcd_clear()
+    GPIO.output(CONTROL_PIN, GPIO.HIGH)
 
 def listen_for_sack():
     while get_arduino().in_waiting:
