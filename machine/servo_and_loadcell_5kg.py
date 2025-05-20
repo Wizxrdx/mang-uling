@@ -40,7 +40,7 @@ GPIO.output(VIBRATOR2_PIN, GPIO.LOW)
 try:
     arduino = serial.Serial('/dev/ttyACM0', 9600, timeout=2)
     time.sleep(3)
-    print("[INFO] Arduino connected on /dev/ttyACM0")
+    print("[INFO] Arduino connected on /dev/ttyACM0 for 5kg")
 except serial.SerialException as e:
     arduino = None
     print(f"[ERROR] Arduino connection failed: {e}")
@@ -197,6 +197,15 @@ def listen_for_sack():
                 if state["package_ready"] and not state["bottom_gate_open"]:
                     time.sleep(2)
                     activate_bottomservo_for_1kg()
+    else:
+        print("[INFO] No Arduino connected for 5kg")
+        try:
+            arduino = serial.Serial('/dev/ttyACM0', 9600, timeout=2)
+            time.sleep(3)
+            print("[INFO] Arduino connected on /dev/ttyACM0 for 5kg")
+        except serial.SerialException as e:
+            arduino = None
+            print(f"[ERROR] Arduino connection failed: {e}")
 
 def finish_5kg():
     requests.put("http://127.0.0.1:5000/count/5kg")
