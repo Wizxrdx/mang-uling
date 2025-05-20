@@ -5,7 +5,7 @@ import machine.servo_and_loadcell_1kg as system_1kg
 def start_1kg():
     Machine().change_system(system_1kg)
 
-def start_10kg():
+def start_5kg():
     # Machine().change_system("10kg")
     pass
 

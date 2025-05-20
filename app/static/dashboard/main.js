@@ -13,7 +13,7 @@ function updateTable() {
                 <tr>
                     <td>${key}</td>
                     <td>${value.bag_1kg} bags</td>
-                    <td>${value.bag_10kg} bags</td>
+                    <td>${value.bag_5kg} bags</td>
                 </tr>
             `);
         });
@@ -25,14 +25,14 @@ function updateTable() {
 $(document).ready(function() {
     replaceWithContent("#status", "/status");
     replaceWithContent("#1kg", "/quota/1kg");
-    replaceWithContent("#10kg", "/quota/10kg");
+    replaceWithContent("#5kg", "/quota/5kg");
     updateTable();
 
     var refreshId = setInterval(function() {
-        if (!$("#modal-1kg").hasClass("show") && !$("#modal-10kg").hasClass("show")) {  // Only update if modal is NOT open
+        if (!$("#modal-1kg").hasClass("show") && !$("#modal-5kg").hasClass("show")) {  // Only update if modal is NOT open
             replaceWithContent("#status", "/status");
             replaceWithContent("#1kg", "/quota/1kg");
-            replaceWithContent("#10kg", "/quota/10kg");
+            replaceWithContent("#5kg", "/quota/5kg");
             updateTable();
         }
     }, 3000);
@@ -45,7 +45,7 @@ $(document).on("click", "#run-1kg", function () {
         success: function (data) {
             replaceWithContent("#status", "/status");
             replaceWithContent("#1kg", "/quota/1kg");
-            replaceWithContent("#10kg", "/quota/10kg");
+            replaceWithContent("#5kg", "/quota/5kg");
         },
         error: function (xhr, status, error) {
             console.error("Error updating status:", error);
@@ -60,7 +60,7 @@ $(document).on("click", "#stop-1kg", function () {
         success: function (data) {
             replaceWithContent("#status", "/status");
             replaceWithContent("#1kg", "/quota/1kg");
-            replaceWithContent("#10kg", "/quota/10kg");
+            replaceWithContent("#5kg", "/quota/5kg");
         },
         error: function (xhr, status, error) {
             console.error("Error updating status:", error);
@@ -83,7 +83,7 @@ $(document).on("click", "#set-1kg", function () {
             console.log(data);
             replaceWithContent("#status", "/status");
             replaceWithContent("#1kg", "/quota/1kg");
-            replaceWithContent("#10kg", "/quota/10kg");
+            replaceWithContent("#5kg", "/quota/5kg");
             $("#modal-1kg").modal("hide");
         },
         error: function (xhr, status, error) {
@@ -92,14 +92,14 @@ $(document).on("click", "#set-1kg", function () {
     });
 });
 
-$(document).on("click", "#run-10kg", function () {
+$(document).on("click", "#run-5kg", function () {
     $.ajax({
-        url: "/status/10kg",
+        url: "/status/5kg",
         type: "PUT",
         success: function (data) {
             replaceWithContent("#status", "/status");
             replaceWithContent("#1kg", "/quota/1kg");
-            replaceWithContent("#10kg", "/quota/10kg");
+            replaceWithContent("#5kg", "/quota/5kg");
         },
         error: function (xhr, status, error) {
             console.error("Error updating status:", error);
@@ -107,14 +107,14 @@ $(document).on("click", "#run-10kg", function () {
     });
 });
 
-$(document).on("click", "#stop-10kg", function () {
+$(document).on("click", "#stop-5kg", function () {
     $.ajax({
         url: "/status/stop",
         type: "PUT",
         success: function (data) {
             replaceWithContent("#status", "/status");
             replaceWithContent("#1kg", "/quota/1kg");
-            replaceWithContent("#10kg", "/quota/10kg");
+            replaceWithContent("#5kg", "/quota/5kg");
         },
         error: function (xhr, status, error) {
             console.error("Error updating status:", error);
@@ -122,24 +122,24 @@ $(document).on("click", "#stop-10kg", function () {
     });
 });
 
-$(document).on("click", "#edit-10kg", function () {
-    let modal = new bootstrap.Modal(document.getElementById("modal-10kg"));
+$(document).on("click", "#edit-5kg", function () {
+    let modal = new bootstrap.Modal(document.getElementById("modal-5kg"));
     modal.show();
 });
 
 
-$(document).on("click", "#set-10kg", function () {
-    let newValue = $("#modal-input-10kg").val().trim();
+$(document).on("click", "#set-5kg", function () {
+    let newValue = $("#modal-input-5kg").val().trim();
 
     $.ajax({
-        url: "/quota/10kg/" + newValue,
+        url: "/quota/5kg/" + newValue,
         type: "POST",
         success: function (data) {
             console.log(data);
             replaceWithContent("#status", "/status");
             replaceWithContent("#1kg", "/quota/1kg");
-            replaceWithContent("#10kg", "/quota/10kg");
-            $("#modal-10kg").modal("hide");
+            replaceWithContent("#5kg", "/quota/5kg");
+            $("#modal-5kg").modal("hide");
         },
         error: function (xhr, status, error) {
             alert("Invalid input. Please enter a valid number.");

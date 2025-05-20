@@ -263,7 +263,7 @@ def generate_pdf():
         pdf.ln()
 
         # Initialize a dictionary to store daily sales for each day of the week
-        weekly_data = {day: {"1kg": 0, "10kg": 0} for day in range(7)}  # Monday to Sunday
+        weekly_data = {day: {"1kg": 0, "5kg": 0} for day in range(7)}  # Monday to Sunday
 
         # Populate weekly data from the sales records
         for record in daily_sales:
@@ -274,8 +274,8 @@ def generate_pdf():
 
             if bag_type == "1kg":
                 weekly_data[day_of_week]["1kg"] += quantity
-            elif bag_type == "10kg":
-                weekly_data[day_of_week]["10kg"] += quantity
+            elif bag_type == "5kg":
+                weekly_data[day_of_week]["5kg"] += quantity
 
         # Add 1kg values row
         pdf.set_font("Arial", style='B', size=12)
@@ -287,13 +287,13 @@ def generate_pdf():
         pdf.cell(22, 8, total, border=1, align='C')
         pdf.ln()
 
-        # Add 10kg values row
+        # Add 5kg values row
         pdf.set_font("Arial", style='B', size=12)
-        pdf.cell(15, 8, "10kg", border=1, align='C')
+        pdf.cell(15, 8, "5kg", border=1, align='C')
         for day in range(7):
             pdf.set_font("Arial", size=12)
-            pdf.cell(22, 8, str(weekly_data[day]["10kg"]), border=1, align='C')
-        total = str(sum(weekly_data[day]["10kg"] for day in range(7)))
+            pdf.cell(22, 8, str(weekly_data[day]["5kg"]), border=1, align='C')
+        total = str(sum(weekly_data[day]["5kg"] for day in range(7)))
         pdf.cell(22, 8, total, border=1, align='C')
         pdf.ln()
 

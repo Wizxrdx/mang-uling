@@ -41,11 +41,11 @@ def data_to_dataframe(results):
     data = {}
     for date, bag_type, quantity in results:
         if date not in data:
-            data[date] = {"quantity_1kg": 0, "quantity_10kg": 0}
+            data[date] = {"quantity_1kg": 0, "quantity_5kg": 0}
         if bag_type == "1kg":
             data[date]["quantity_1kg"] = quantity
-        elif bag_type == "10kg":
-            data[date]["quantity_10kg"] = quantity
+        elif bag_type == "5kg":
+            data[date]["quantity_5kg"] = quantity
 
     # Create DataFrame
     df = pd.DataFrame([

@@ -4,15 +4,15 @@ from datetime import datetime, timedelta
 
 # Monthly data
 data = {
-    "2024-08": {"1kg": 777, "10kg": 780, "days": 31},
-    "2024-09": {"1kg": 385, "10kg": 885, "days": 30},
-    "2024-10": {"1kg": 385, "10kg": 885, "days": 31},
-    "2024-11": {"1kg": 240, "10kg": 1010, "days": 30},
-    "2024-12": {"1kg": 385, "10kg": 780, "days": 31},
-    "2025-01": {"1kg": 777, "10kg": 660, "days": 31},
-    "2025-02": {"1kg": 240, "10kg": 1220, "days": 28},
-    "2025-03": {"1kg": 385, "10kg": 785, "days": 31},
-    "2025-04": {"1kg": 240, "10kg": 645, "days": 30},
+    "2024-08": {"1kg": 777, "5kg": 780, "days": 31},
+    "2024-09": {"1kg": 385, "5kg": 885, "days": 30},
+    "2024-10": {"1kg": 385, "5kg": 885, "days": 31},
+    "2024-11": {"1kg": 240, "5kg": 1010, "days": 30},
+    "2024-12": {"1kg": 385, "5kg": 780, "days": 31},
+    "2025-01": {"1kg": 777, "5kg": 660, "days": 31},
+    "2025-02": {"1kg": 240, "5kg": 1220, "days": 28},
+    "2025-03": {"1kg": 385, "5kg": 785, "days": 31},
+    "2025-04": {"1kg": 240, "5kg": 645, "days": 30},
 }
 
 def generate_randomized_sales(total_kg, days):
@@ -32,7 +32,7 @@ def generate_randomized_sales(total_kg, days):
 def populate_bag_types(db):
     # Create bag types  
     one_kg_bag = BagType(type="1kg")
-    ten_kg_bag = BagType(type="10kg")
+    ten_kg_bag = BagType(type="5kg")
 
     db.session.add(one_kg_bag)
     db.session.add(ten_kg_bag)

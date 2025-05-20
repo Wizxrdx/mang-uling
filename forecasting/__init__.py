@@ -25,7 +25,7 @@ def create_monthly_forecast(data):
     data_df = utils.data_to_dataframe(data)
     data_df['production_date'] = pd.to_datetime(data_df['production_date'])
     data_df.set_index('production_date', inplace=True)
-    data_1kg = data_df.drop(['quantity_10kg'], axis=1)
+    data_1kg = data_df.drop(['quantity_5kg'], axis=1)
     data_10kg = data_df.drop(['quantity_1kg'], axis=1)
 
     order_1kg, seasonal_order_1kg, order_10kg, seasonal_order_10kg = get_parameters(data_1kg, data_10kg)
