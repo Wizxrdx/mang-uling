@@ -12,7 +12,7 @@ from app.file_generation import MyPDF
 from app.utils import get_first_day_of_iso_week, get_readable_week_of_month
 
 from .models import BagType, DailyProduction, Employee
-from .data import State
+from .data import State, get_production_record
 
 # Blueprint setup
 main = Blueprint('main', __name__)
@@ -242,12 +242,7 @@ def generate_pdf():
         week_end_date = week_start_date + timedelta(days=6)
 
         # Query the daily sales data
-        daily_sales = DailyProduction.query \
-            .join(BagType) \
-            .filter(
-                DailyProduction.production_date.between(week_start_date.strftime('%Y-%m-%d'), week_end_date.strftime('%Y-%m-%d'))
-            ) \
-            .all()
+        daily_sales = get_production_record(week_start_date, week_end_date)
         
         pdf.set_font("Arial", size=12)
         if not daily_sales:
@@ -267,10 +262,10 @@ def generate_pdf():
 
         # Populate weekly data from the sales records
         for record in daily_sales:
-            production_date = datetime.strptime(record.production_date, "%Y-%m-%d")
-            day_of_week = production_date.weekday()  # Monday = 0, Sunday = 6
-            bag_type = record.bag_type.type
-            quantity = record.quantity
+            production_date = record[0]
+            day_of_week = datetime.strptime(production_date, "%Y-%m-%d").weekday()
+            bag_type = record[1]
+            quantity = record[2]
 
             if bag_type == "1kg":
                 weekly_data[day_of_week]["1kg"] += quantity
@@ -320,15 +315,7 @@ def date_range_data():
         end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d')
         
         # Query daily production data for the selected date range
-        daily_production = DailyProduction.query \
-            .join(BagType) \
-            .filter(
-                DailyProduction.production_date.between(
-                    start_date.strftime('%Y-%m-%d'),
-                    end_date.strftime('%Y-%m-%d')
-                )
-            ) \
-            .all()
+        daily_production = get_production_record(start_date, end_date)
         
         if not daily_production:
             return jsonify({
@@ -343,7 +330,7 @@ def date_range_data():
         }
         
         # Get unique bag types
-        bag_types = set(dp.bag_type.type for dp in daily_production)
+        bag_types = set(dp[1] for dp in daily_production)
         
         # Initialize datasets for each bag type
         for bag_type in bag_types:
@@ -357,12 +344,12 @@ def date_range_data():
         # Group data by date
         date_groups = {}
         for dp in daily_production:
-            date_str = dp.production_date  # Already a string in YYYY-MM-DD format
+            date_str = dp[0]  # Already a string in YYYY-MM-DD format
             if date_str not in date_groups:
                 date_groups[date_str] = {}
-            if dp.bag_type.type not in date_groups[date_str]:
-                date_groups[date_str][dp.bag_type.type] = 0
-            date_groups[date_str][dp.bag_type.type] += dp.quantity
+            if dp[1] not in date_groups[date_str]:
+                date_groups[date_str][dp[1]] = 0
+            date_groups[date_str][dp[1]] += dp[2]
         
         # Sort dates and populate chart data
         sorted_dates = sorted(date_groups.keys())
