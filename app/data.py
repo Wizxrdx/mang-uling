@@ -64,14 +64,17 @@ class State:
     def initialize_data(self):
         self.IS_BUSY = False
 
-        forecasted_data_1kg_entry = get_forecast_record(self.TODAY.strftime("%Y-%m-%d"), bag_type="1kg")
-        forecasted_data_5kg_entry = get_forecast_record(self.TODAY.strftime("%Y-%m-%d"), bag_type="5kg")
-
-        if is_new_month() or forecasted_data_1kg_entry is None or forecasted_data_5kg_entry is None:
-            print("New month detected. Generating new forecast data.")
+        if not is_order_file_exists("1kg"):
+            print("New month detected for 1kg. Generating new forecast data.")
             data = get_production_record()
-            forecast_1kg, forecast_5kg = create_monthly_forecast(data)
-            create_forecast_record(forecast_1kg, forecast_5kg)
+            forecast_1kg = create_monthly_forecast(data, "1kg")
+            create_forecast_record(forecast_1kg, "1kg")
+
+        if not is_order_file_exists("5kg"):
+            print("New month detected for 5kg. Generating new forecast data.")
+            data = get_production_record()
+            forecast_5kg = create_monthly_forecast(data, "5kg")
+            create_forecast_record(forecast_5kg, "5kg")
 
         last_daily_production_date = DailyProduction.query.order_by(DailyProduction.production_date.desc()).first().production_date
         create_production_record(self.TODAY, last_daily_production_date)
@@ -196,28 +199,32 @@ def create_production_record(date, start_date=None):
 
     db.session.commit()
 
-def create_forecast_record(data_1kg, data_5kg):
+def create_forecast_record(data, prefix):
     # 1kg data
     bag_types = {bt.type: bt.id for bt in BagType.query.all()}
 
-    for date, row in data_1kg.iterrows():
+    for date, row in data.iterrows():
         quantity = 0 if int(row['forecast']) < 1 else int(row['forecast'])
-        forecast = DailyForecast(
-            forecast_date=date.strftime('%Y-%m-%d'),
-            bag_type_id=bag_types["1kg"],
-            quantity=quantity
-        )
-        db.session.add(forecast)
-
-    # 5kg data
-    for date, row in data_5kg.iterrows():
-        quantity = 0 if int(row['forecast']) < 1 else int(row['forecast'])
-        forecast = DailyForecast(
-            forecast_date=date.strftime('%Y-%m-%d'),
-            bag_type_id=bag_types["5kg"],
-            quantity=quantity
-        )
-        db.session.add(forecast)
+        forecast_date = date.strftime('%Y-%m-%d')
+        bag_type_id = bag_types[prefix]
+        
+        # Check if record exists
+        existing_forecast = DailyForecast.query.filter_by(
+            forecast_date=forecast_date,
+            bag_type_id=bag_type_id
+        ).first()
+        
+        if existing_forecast:
+            # Update existing record
+            existing_forecast.quantity = quantity
+        else:
+            # Create new record
+            forecast = DailyForecast(
+                forecast_date=forecast_date,
+                bag_type_id=bag_type_id,
+                quantity=quantity
+            )
+            db.session.add(forecast)
 
     db.session.commit()
 
