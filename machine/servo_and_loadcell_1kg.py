@@ -11,6 +11,8 @@ from gpiozero import AngularServo, Device
 from gpiozero.pins.pigpio import PiGPIOFactory
 from time import sleep
 
+name = "1kg"
+
 GPIO.setwarnings(False)
 GPIO.cleanup()
 

@@ -2,6 +2,7 @@ import threading
 import time
 from gpiozero import Button
 import RPi.GPIO as GPIO
+import drivers
 
 class Machine:
     _instance = None
@@ -15,6 +16,8 @@ class Machine:
         if hasattr(self, '_initialized') and self._initialized:
             return
         self._initialized = True
+        # Initialize LCD
+        self.display = drivers.Lcd()
 
         self.system = None
         GPIO.setmode(GPIO.BCM)
@@ -32,7 +35,11 @@ class Machine:
         if self.system is not None:
             self.stop_pressed()
         self.system = system
+        self.display.lcd_display_string("Waiting for START button press...", 1)
+        if self.system is not None:
+            self.display.lcd_display_string(self.system.name + " is now ready.", 2)
         self.system_thread = None
+        
 
     def reset_system(self):
         if self.system is not None:
