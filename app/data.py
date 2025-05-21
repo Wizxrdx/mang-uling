@@ -10,7 +10,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 from sqlalchemy import func
 from .models import BagType, DailyProduction, DailyForecast
 from . import db
-from forecasting import create_monthly_forecast, is_new_month
+from forecasting import create_monthly_forecast, is_order_file_exists
 
 class State:
     _instance = None
