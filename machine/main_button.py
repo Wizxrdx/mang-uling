@@ -35,10 +35,10 @@ class Machine:
         if self.system is not None:
             self.stop_pressed()
         self.system = system
-        self.display.lcd_display_string("Waiting for START button press...", 1)
-        if self.system is not None:
-            self.display.lcd_display_string(self.system.name + " is now ready.", 2)
         self.system_thread = None
+        self.display.lcd_display_string("  " + self.system.name + " is now ready. ", 1)
+        self.display.lcd_display_string("     Waiting for     ", 3)
+        self.display.lcd_display_string("    START button...  ", 4)
         
 
     def reset_system(self):
@@ -46,6 +46,10 @@ class Machine:
             self.stop_pressed()
         self.system = None
         self.system_thread = None
+        self.display.lcd_display_string("No bag size selected", 1)
+        self.display.lcd_display_string("Open the web server", 3)
+        self.display.lcd_display_string("to select one.", 4)
+
 
     def start_pressed(self):
         if self.system is None:
@@ -53,12 +57,14 @@ class Machine:
             return
         
         if self.system_thread is None or not self.system_thread.is_alive():
+            self.display.lcd_clear()
             print("START button pressed!")
             self.system.should_run = True
             self.system.initialize_system()
             print("Starting system thread...")
             self.system_thread = threading.Thread(target=self.system.run_system)
             self.system_thread.start()
+            
         else:
             print("System already running.")
 
