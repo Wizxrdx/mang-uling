@@ -13,6 +13,7 @@ data = {
     "2025-02": {"1kg": 240, "5kg": 1220, "days": 28},
     "2025-03": {"1kg": 385, "5kg": 785, "days": 31},
     "2025-04": {"1kg": 240, "5kg": 645, "days": 30},
+    "2025-05": {"1kg": 385, "5kg": 785, "days": 31},
 }
 
 def generate_randomized_sales(total_kg, days):
