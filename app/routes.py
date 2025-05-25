@@ -29,14 +29,14 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         username = form.username.data
-        password = form.password.data  
+        password = form.password.data
 
-        # Fetch employee from the database
-        employee = Employee.query.filter_by(username=username).first()
+        employee = State().login(username, password)
 
-        if employee and employee.check_password(password):  # Verify password
+        if employee:  # Verify password
             session['username'] = username  # Store user session separately
             session['name'] = employee.name
+            session['id'] = employee.id
             return redirect(url_for('main.index'))
         else:
             flash('Invalid username or password', 'danger')
@@ -47,6 +47,8 @@ def login():
 def logout():
     if request.method == 'GET':
         session.pop('username', None)
+        session.pop('name', None)
+        session.pop('id', None)
         flash('You have been logged out.', 'info')
         return redirect(url_for('main.login'))
 
@@ -78,7 +80,47 @@ def profile():
         return redirect(url_for('main.login'))
     
     return render_template('profile.html',
-                           name=session.get('name', "Guest"))
+                           name=session.get('name', "Guest"),
+                           username=session.get('username', ""))
+
+@main.route('/update-profile', methods=['POST'])
+def update_profile():
+    if 'username' not in session:
+        return jsonify({"status": "error", "message": "Not logged in"}), 401
+    
+    data = request.get_json()
+    new_name = data.get('name', '').strip()
+    new_password = data.get('password', '').strip()
+    
+    if not new_name and not new_password:
+        return jsonify({"status": "error", "message": "No changes provided"}), 400
+    
+    employee = State().get_employee_record_by(session['id'])
+    if not employee:
+        return jsonify({"status": "error", "message": "User not found"}), 404
+    
+    try:
+        if new_name:
+            if len(new_name) < 2:
+                return jsonify({"status": "error", "message": "Name must be at least 2 characters long"}), 400
+            State().update_profile(session['username'], new_name, session['username'], new_password)
+            session['name'] = new_name
+        
+        if new_password:
+            if len(new_password) < 6:
+                return jsonify({"status": "error", "message": "Password must be at least 6 characters long"}), 400
+            State().update_profile(session['username'], session['name'], session['username'], new_password)
+        
+        # Clear all session data
+        session.clear()
+        
+        return jsonify({
+            "status": "success", 
+            "message": "Profile updated successfully. Please log in again.",
+            "redirect": url_for('main.logout')
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @main.route('/status', methods=['GET'])
 def status():

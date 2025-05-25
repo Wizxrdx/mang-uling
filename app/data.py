@@ -8,7 +8,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 from sqlalchemy import func
-from .models import BagType, DailyProduction, DailyForecast
+from .models import BagType, DailyProduction, DailyForecast, Employee
 from . import db
 from forecasting import create_monthly_forecast, is_order_file_exists
 
@@ -156,6 +156,28 @@ class State:
             db.session.add(quota)
         db.session.commit()
 
+    def get_name_record(self):
+        return Employee.query.filter_by(name=self.name).first()
+    
+    def login(self, username, password):
+        employee = Employee.query.filter_by(username=username).first()
+        if employee and employee.check_password(password):
+            return employee
+        else:
+            return None
+        
+    def get_employee_record_by(self, id):
+        return Employee.query.filter_by(id=id).first()
+
+    def get_username_record(self, username):
+        return Employee.query.filter_by(username=username).first()
+    
+    def update_profile(self, old_username, name, new_username, password):
+        employee = Employee.query.filter_by(username=old_username).first()
+        employee.name = name
+        employee.username = new_username
+        employee.set_password(password)
+        db.session.commit()
 
     def update_production_record(self, size, quantity):
         self.DATA[size]["count"] += quantity
