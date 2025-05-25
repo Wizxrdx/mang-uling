@@ -11,8 +11,7 @@ import io
 from app.file_generation import MyPDF
 from app.utils import get_first_day_of_iso_week, get_readable_week_of_month
 
-from .models import BagType, DailyProduction, Employee
-from .data import State, get_production_record
+from .data import State, get_production_record, get_forecast_record
 
 # Blueprint setup
 main = Blueprint('main', __name__)
@@ -368,39 +367,52 @@ def date_range_data():
         # Process the data for chart visualization
         chart_data = {
             'labels': [],
-            'datasets': []
+            'datasets': [
+                {
+                    'label': '1kg Production',
+                    'data': [],
+                    'forecast': []
+                },
+                {
+                    'label': '5kg Production',
+                    'data': [],
+                    'forecast': []
+                }
+            ]
         }
-        
-        # Get unique bag types
-        bag_types = set(dp[1] for dp in daily_production)
-        
-        # Initialize datasets for each bag type
-        for bag_type in bag_types:
-            chart_data['datasets'].append({
-                'label': f'{bag_type} kg bags',
-                'data': [],
-                'borderColor': f'rgb({hash(bag_type) % 255}, {hash(bag_type) % 255}, {hash(bag_type) % 255})',
-                'fill': False
-            })
         
         # Group data by date
         date_groups = {}
         for dp in daily_production:
             date_str = dp[0]  # Already a string in YYYY-MM-DD format
             if date_str not in date_groups:
-                date_groups[date_str] = {}
-            if dp[1] not in date_groups[date_str]:
-                date_groups[date_str][dp[1]] = 0
-            date_groups[date_str][dp[1]] += dp[2]
+                date_groups[date_str] = {'1kg': 0, '5kg': 0}
+            date_groups[date_str][dp[1]] = dp[2]
         
         # Sort dates and populate chart data
         sorted_dates = sorted(date_groups.keys())
         chart_data['labels'] = sorted_dates
         
+        # Get forecast data for each date
+        forecast_data = {}
         for date in sorted_dates:
-            for i, bag_type in enumerate(bag_types):
-                count = date_groups[date].get(bag_type, 0)
-                chart_data['datasets'][i]['data'].append(count)
+            forecast_1kg = get_forecast_record(date, "1kg")
+            forecast_5kg = get_forecast_record(date, "5kg")
+            
+            forecast_data[date] = {
+                '1kg': forecast_1kg.quantity if forecast_1kg else 0,
+                '5kg': forecast_5kg.quantity if forecast_5kg else 0
+            }
+        
+        # Populate datasets with both production and forecast data
+        for date in sorted_dates:
+            # Production data
+            chart_data['datasets'][0]['data'].append(date_groups[date]['1kg'])
+            chart_data['datasets'][1]['data'].append(date_groups[date]['5kg'])
+            
+            # Forecast data
+            chart_data['datasets'][0]['forecast'].append(forecast_data[date]['1kg'])
+            chart_data['datasets'][1]['forecast'].append(forecast_data[date]['5kg'])
         
         return jsonify(chart_data)
     except Exception as e:
