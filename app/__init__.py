@@ -26,7 +26,7 @@ def create_app():
 
     # Initialize the database
     from app.data import State
-    from .populate_data import populate_bag_types, populate_credentials, populate_with_real_data, populate_with_fake_data
+    from .populate_data import populate_bag_types, populate_credentials, populate_with_real_data, populate_with_fake_data, populate_with_csv_data
     with app.app_context():
         if not database_exists(app):
             print("Database not found. Running flask db upgrade...")
@@ -34,8 +34,9 @@ def create_app():
             print("Database upgrade completed!")
             populate_bag_types(db)
             populate_credentials(db)
-            populate_with_real_data(db)
+            # populate_with_real_data(db)
             # populate_with_fake_data(db)
+            populate_with_csv_data(db)
 
         else:
             print("Database already exists. Skipping upgrade.")

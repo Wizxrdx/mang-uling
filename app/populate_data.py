@@ -1,6 +1,11 @@
 import random
+import warnings
+import pandas as pd
 from app.models import Employee, BagType, DailyProduction
 from datetime import datetime, timedelta
+
+# Suppress statsmodels warnings
+warnings.filterwarnings('ignore', module='statsmodels')
 
 # Monthly data
 data = {
@@ -75,6 +80,36 @@ def populate_with_real_data(db):
 
     db.session.commit()
     print("Monthly data added successfully!")
+
+def populate_with_csv_data(db):
+    bag_types = {bt.type: bt.id for bt in BagType.query.all()}
+
+    # Read the CSV file with date parsing during read
+    df = pd.read_csv("mang-uling-charcoal-sales-2024.csv", parse_dates=['Date'], dayfirst=True)
+    
+    for index, row in df.iterrows():
+        date = row["Date"].strftime("%Y-%m-%d")  # Convert to YYYY-MM-DD format
+        one_kg_sales = row["1kg Packs Sold"]
+        five_kg_sales = row["5kg Packs Sold"]
+        total_sales = row["Total Sales (kg)"]
+
+        # Create entries for each bag type
+        one_kg_entry = DailyProduction(
+            production_date=date,
+            bag_type_id=bag_types["1kg"],
+            quantity=one_kg_sales
+        )
+        db.session.add(one_kg_entry)
+
+        five_kg_entry = DailyProduction(
+            production_date=date,
+            bag_type_id=bag_types["5kg"],
+            quantity=five_kg_sales
+        )
+        db.session.add(five_kg_entry)
+
+    db.session.commit()
+    print("CSV data added successfully!")
 
 def populate_with_fake_data(db, start_date="2025-01-01"):
     bag_types = {bt.type: bt.id for bt in BagType.query.all()}

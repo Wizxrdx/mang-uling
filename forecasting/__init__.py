@@ -8,8 +8,8 @@ import pandas as pd
 from app import utils
 
 MODEL_PATH = "parameters"
-FORECAST_DAYS_1KG = 60
-FORECAST_DAYS_10KG = 60
+FORECAST_DAYS_1KG = 90
+FORECAST_DAYS_10KG = 90
 
 
 def is_order_file_exists(file_name):
@@ -33,7 +33,7 @@ def create_monthly_forecast(data, file_prefix):
 
     order_1kg, seasonal_order_1kg = get_parameters(data_1kg, file_prefix)
     first_day, days_in_month = utils.get_days_in_month()
-
+    
     forecast_1kg = perform_forecast(order_1kg, seasonal_order_1kg, data_1kg, start_date=first_day, days=days_in_month, forecast_days=FORECAST_DAYS_1KG)
 
     return (forecast_1kg)
@@ -50,12 +50,17 @@ def get_parameters(data, file_prefix):
                 print(f"Deleted old order file: {file}")
         
         # Create a new 1kg order file
-        parameters_1kg = auto_arima(data, seasonal=True, m=30, stepwise=True)
+        parameters_1kg = auto_arima(data, seasonal=True, m=7, stepwise=False)
         print(f"Order for {current_month} created.")
+        print(f"\nARIMA Parameters:")
+        print(f"Order: {parameters_1kg.order}")
+        print(f"Seasonal Order: {parameters_1kg.seasonal_order}")
+        print(f"AIC: {parameters_1kg.aic()}")
+        print(f"BIC: {parameters_1kg.bic()}")
 
         # save the order file
         file_name = f"{file_prefix}_{current_month}.pkl"
-        print(f"Saving order to '{file_name}'...")
+        print(f"\nSaving order to '{file_name}'...")
         with open(os.path.join(MODEL_PATH, file_name), "wb") as save_file:
             pickle.dump(parameters_1kg, save_file)
         print(f"File '{file_name}' created.")
@@ -65,12 +70,17 @@ def get_parameters(data, file_prefix):
         # Load the existing 1kg order file
         with open(os.path.join(MODEL_PATH, file_name), "rb") as saved_file:
             parameters_1kg = pickle.load(saved_file)
+        print(f"\nLoaded ARIMA Parameters:")
+        print(f"Order: {parameters_1kg.order}")
+        print(f"Seasonal Order: {parameters_1kg.seasonal_order}")
+        print(f"AIC: {parameters_1kg.aic()}")
+        print(f"BIC: {parameters_1kg.bic()}")
 
     return (parameters_1kg.order, parameters_1kg.seasonal_order)
 
 def perform_forecast(order, seasonal_order, data, start_date, days=30, forecast_days=60):
     forecast_df = pd.DataFrame(index=pd.date_range(start_date, periods=days, freq="D"))
-    history = data[-forecast_days:]  # Use last 60 days for training
+    history = data[-forecast_days:]
     predictions = []
 
     for i in range(days):
