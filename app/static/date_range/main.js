@@ -1,8 +1,17 @@
 // Initialize Flatpickr for date range selection
+const today = new Date();
+const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+lastDayOfMonth.setHours(23, 59, 59, 999);
+
 const datepicker = flatpickr("#datepicker", {
     mode: "range",
     dateFormat: "Y-m-d",
-    maxDate: "today",
+    showMonths: 2,
+    maxDate: lastDayOfMonth,
+    defaultDate: "today",
+    disableMobile: true,
+    enableTime: false,
+    time_24hr: true,
     onChange: function(selectedDates, dateStr, instance) {
         if (selectedDates.length === 2) {
             submitRange();
@@ -42,45 +51,34 @@ function submitRange() {
             end_date: endDate
         })
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
         // Destroy existing charts if they exist
-        if (chart1kg) {
-            chart1kg.destroy();
-        }
-        if (chart5kg) {
-            chart5kg.destroy();
-        }
+        if (chart1kg) chart1kg.destroy();
+        if (chart5kg) chart5kg.destroy();
+
+        // Create new charts
+        const ctx1kg = document.getElementById('chart1kg').getContext('2d');
+        const ctx5kg = document.getElementById('chart5kg').getContext('2d');
 
         // Create 1kg chart
-        const ctx1kg = document.getElementById('chart1kg').getContext('2d');
         chart1kg = new Chart(ctx1kg, {
             type: 'line',
             data: {
                 labels: data.labels,
-                datasets: [
-                    {
-                        label: '1kg Production',
-                        data: data.datasets[0].data,
-                        borderColor: 'rgb(75, 192, 192)',  // Teal for actual
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        fill: true,
-                        borderWidth: 2
-                    },
-                    {
-                        label: '1kg Forecast',
-                        data: data.datasets[0].forecast,
-                        borderColor: 'rgb(255, 159, 64)',  // Orange for forecast
-                        borderDash: [5, 5],
-                        fill: false,
-                        borderWidth: 2
-                    }
-                ]
+                datasets: [{
+                    label: 'Actual Production',
+                    data: data.datasets[0].data,
+                    borderColor: 'rgb(255, 80, 0)',
+                    backgroundColor: 'rgba(255, 80, 0, 0.2)',
+                    fill: true,
+                }, {
+                    label: 'Forecast',
+                    data: data.datasets[0].forecast,
+                    borderColor: 'rgb(0, 128, 255)',
+                    backgroundColor: 'rgba(0, 128, 255, 0.2)',
+                    fill: true,
+                }]
             },
             options: {
                 responsive: true,
@@ -117,29 +115,23 @@ function submitRange() {
         });
 
         // Create 5kg chart
-        const ctx5kg = document.getElementById('chart5kg').getContext('2d');
         chart5kg = new Chart(ctx5kg, {
             type: 'line',
             data: {
                 labels: data.labels,
-                datasets: [
-                    {
-                        label: '5kg Production',
-                        data: data.datasets[1].data,
-                        borderColor: 'rgb(54, 162, 235)',  // Blue for actual
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        fill: true,
-                        borderWidth: 2
-                    },
-                    {
-                        label: '5kg Forecast',
-                        data: data.datasets[1].forecast,
-                        borderColor: 'rgb(153, 102, 255)',  // Purple for forecast
-                        borderDash: [5, 5],
-                        fill: false,
-                        borderWidth: 2
-                    }
-                ]
+                datasets: [{
+                    label: 'Actual Production',
+                    data: data.datasets[1].data,
+                    borderColor: 'rgb(255, 80, 0)',
+                    backgroundColor: 'rgba(255, 80, 0, 0.2)',
+                    fill: true,
+                }, {
+                    label: 'Forecast',
+                    data: data.datasets[1].forecast,
+                    borderColor: 'rgb(0, 128, 255)',
+                    backgroundColor: 'rgba(0, 128, 255, 0.2)',
+                    fill: true,
+                }]
             },
             options: {
                 responsive: true,
